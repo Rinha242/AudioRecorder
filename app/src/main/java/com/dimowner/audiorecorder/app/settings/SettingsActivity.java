@@ -121,6 +121,8 @@ public class SettingsActivity extends Activity implements SettingsContract.View,
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_settings);
 
+		AndroidUtils.applyWindowInsets(this);
+
 		btnView = findViewById(R.id.btnView);
 
 		btnView.setBackground(RippleUtils.createRippleShape(

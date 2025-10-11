@@ -11,13 +11,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavBackStackEntry
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.dimowner.audiorecorder.v2.app.ComposePlaygroundScreen
-import com.dimowner.audiorecorder.v2.app.DetailsWelcomeScreen
 import com.dimowner.audiorecorder.v2.app.deleted.DeletedRecordsScreen
 import com.dimowner.audiorecorder.v2.app.deleted.DeletedRecordsViewModel
 import com.dimowner.audiorecorder.v2.app.home.HomeScreen
@@ -107,16 +104,6 @@ fun RecorderNavigationGraph(
                     }
                 }
             )
-        }
-        composable("${Routes.DETAILS_SCREEN}/{${Routes.USER_NAME}}/{${Routes.ANIMAL_SELECTED}}",
-                arguments = listOf(
-                    navArgument(name = Routes.USER_NAME) { type = NavType.StringType },
-                    navArgument(name = Routes.ANIMAL_SELECTED) { type = NavType.StringType }
-                ),
-            ) {
-            val userName = it.arguments?.getString(Routes.USER_NAME)
-            val animalSelected = it.arguments?.getString(Routes.ANIMAL_SELECTED)
-            DetailsWelcomeScreen(userName = userName, animalSelected = animalSelected)
         }
         composable(Routes.WELCOME_SCREEN) {
             WelcomeScreen(onGetStarted = {

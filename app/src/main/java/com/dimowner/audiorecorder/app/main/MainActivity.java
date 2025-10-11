@@ -162,6 +162,8 @@ public class MainActivity extends Activity implements MainContract.View, View.On
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
+		AndroidUtils.applyWindowInsets(this);
+
 		waveformView = findViewById(R.id.record);
 		recordingWaveformView = findViewById(R.id.recording_view);
 		txtProgress = findViewById(R.id.txt_progress);

@@ -21,15 +21,18 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -101,181 +104,186 @@ internal fun SettingsScreen(
         }
     }
 
-    Surface(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            TitleBar(
-                stringResource(R.string.settings),
-                onBackPressed = {
-                    onPopBackStack()
-                })
-            Column(
-                modifier = Modifier
-                    .verticalScroll(rememberScrollState())
-                    .weight(weight = 1f, fill = false)
-            ) {
-                Spacer(modifier = Modifier.size(8.dp))
-                SettingsItem(stringResource(R.string.trash), R.drawable.ic_delete) {
-                    showDeletedRecordsScreen()
-                }
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    SettingsItemCheckBox(
-                        uiState.isDynamicColors,
-                        stringResource(R.string.dynamic_theme_colors),
-                        R.drawable.ic_palette_outline,
-                        {
-                            onAction(SettingsScreenAction.SetDynamicTheme(it))
-                        })
-                }
-                SettingsItemCheckBox(
-                    uiState.isDarkTheme,
-                    stringResource(R.string.dark_theme),
-                    R.drawable.ic_dark_mode,
-                    {
-                        onAction(SettingsScreenAction.SetDarkTheme(it))
+    Scaffold(
+        contentWindowInsets = WindowInsets.safeDrawing,
+    ) { innerPadding ->
+        Surface(
+            modifier = Modifier.fillMaxSize().padding(innerPadding)
+        ) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                TitleBar(
+                    stringResource(R.string.settings),
+                    onBackPressed = {
+                        onPopBackStack()
                     })
-                SettingsItemCheckBox(
-                    uiState.isKeepScreenOn,
-                    stringResource(R.string.keep_screen_on),
-                    R.drawable.ic_lightbulb_on,
-                    {
-                        onAction(SettingsScreenAction.SetKeepScreenOn(it))
-                    })
-                SettingsItemCheckBox(
-                    uiState.isShowRenameDialog,
-                    stringResource(R.string.ask_to_rename),
-                    R.drawable.ic_pencil,
-                    {
-                        onAction(SettingsScreenAction.SetShowRenamingDialog(it))
-                    })
-                DropDownSetting(
-                    items = uiState.nameFormats,
-                    selectedItem = uiState.selectedNameFormat,
-                    onSelect = {
-                        onAction(SettingsScreenAction.SetNameFormat(it))
-                    }
-                )
-                Spacer(modifier = Modifier.size(8.dp))
-                ResetRecordingSettingsPanel(
-                    stringResource(id = R.string.size_per_min, uiState.sizePerMin),
-                    uiState.recordingSettingsText
+                Column(
+                    modifier = Modifier
+                        .verticalScroll(rememberScrollState())
+                        .weight(weight = 1f, fill = false)
                 ) {
-                    onAction(SettingsScreenAction.ResetRecordingSettings)
-                }
-                SettingSelector(
-                    name = stringResource(id = R.string.recording_format),
-                    chips = uiState.recordingSettings.map { it.recordingFormat },
-                    onSelect = {
-                        onAction(SettingsScreenAction.SelectRecordingFormat(it.value))
-                    },
-                    onClickInfo = {
-                        infoText.value = context.getString(R.string.info_format)
-                        openInfoDialog.value = true
+                    Spacer(modifier = Modifier.size(8.dp))
+                    SettingsItem(stringResource(R.string.trash), R.drawable.ic_delete) {
+                        showDeletedRecordsScreen()
                     }
-                )
-                val selectedFormat = uiState.recordingSettings.firstOrNull { it.recordingFormat.isSelected }
-                SettingSelector(
-                    name = stringResource(id = R.string.sample_rate),
-                    chips = selectedFormat?.sampleRates ?: emptyList(),
-                    onSelect = {
-                        onAction(SettingsScreenAction.SelectSampleRate(it.value))
-                    },
-                    onClickInfo = {
-                        infoText.value = context.getString(R.string.info_frequency)
-                        openInfoDialog.value = true
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        SettingsItemCheckBox(
+                            uiState.isDynamicColors,
+                            stringResource(R.string.dynamic_theme_colors),
+                            R.drawable.ic_palette_outline,
+                            {
+                                onAction(SettingsScreenAction.SetDynamicTheme(it))
+                            })
                     }
-                )
-                if (isExpandedBitRatePanel.value != !selectedFormat?.bitRates.isNullOrEmpty()) {
-                    isExpandedBitRatePanel.value = !selectedFormat?.bitRates.isNullOrEmpty()
-                }
-                AnimatedVisibility(visible = isExpandedBitRatePanel.value) {
-                    SettingSelector(
-                        name = stringResource(id = R.string.bitrate),
-                        chips = selectedFormat?.bitRates ?: emptyList(),
+                    SettingsItemCheckBox(
+                        uiState.isDarkTheme,
+                        stringResource(R.string.dark_theme),
+                        R.drawable.ic_dark_mode,
+                        {
+                            onAction(SettingsScreenAction.SetDarkTheme(it))
+                        })
+                    SettingsItemCheckBox(
+                        uiState.isKeepScreenOn,
+                        stringResource(R.string.keep_screen_on),
+                        R.drawable.ic_lightbulb_on,
+                        {
+                            onAction(SettingsScreenAction.SetKeepScreenOn(it))
+                        })
+                    SettingsItemCheckBox(
+                        uiState.isShowRenameDialog,
+                        stringResource(R.string.ask_to_rename),
+                        R.drawable.ic_pencil,
+                        {
+                            onAction(SettingsScreenAction.SetShowRenamingDialog(it))
+                        })
+                    DropDownSetting(
+                        items = uiState.nameFormats,
+                        selectedItem = uiState.selectedNameFormat,
                         onSelect = {
-                            onAction(SettingsScreenAction.SelectBitrate(it.value))
+                            onAction(SettingsScreenAction.SetNameFormat(it))
+                        }
+                    )
+                    Spacer(modifier = Modifier.size(8.dp))
+                    ResetRecordingSettingsPanel(
+                        stringResource(id = R.string.size_per_min, uiState.sizePerMin),
+                        uiState.recordingSettingsText
+                    ) {
+                        onAction(SettingsScreenAction.ResetRecordingSettings)
+                    }
+                    SettingSelector(
+                        name = stringResource(id = R.string.recording_format),
+                        chips = uiState.recordingSettings.map { it.recordingFormat },
+                        onSelect = {
+                            onAction(SettingsScreenAction.SelectRecordingFormat(it.value))
                         },
                         onClickInfo = {
-                            infoText.value = context.getString(R.string.info_bitrate)
+                            infoText.value = context.getString(R.string.info_format)
                             openInfoDialog.value = true
                         }
                     )
-                }
-                SettingSelector(
-                    name = stringResource(id = R.string.channels),
-                    chips = selectedFormat?.channelCounts ?: emptyList(),
-                    onSelect = {
-                        onAction(SettingsScreenAction.SelectChannelCount(it.value))
-                    },
-                    onClickInfo = {
-                        infoText.value = context.getString(R.string.info_channels)
-                        openInfoDialog.value = true
-                    }
-                )
-                Spacer(modifier = Modifier.size(8.dp))
-                SettingsItem(stringResource(R.string.rate_app), R.drawable.ic_thumbs) {
-                    rateApp(context)
-                }
-                SettingsItem(stringResource(R.string.request), R.drawable.ic_chat_bubble) {
-                    requestFeature(context) {
-                        warningText.value = it
-                        openWarningDialog.value = true
-                    }
-                }
-                Spacer(modifier = Modifier.size(8.dp))
-                InfoTextView(
-                    stringResource(
-                        id = R.string.total_record_count,
-                        (uiState.totalRecordCount)
-                    )
-                )
-                InfoTextView(
-                    stringResource(
-                        id = R.string.total_duration,
-                        formatDuration(context.resources, (uiState.totalRecordDuration))
-                    )
-                )
-                InfoTextView(
-                    stringResource(
-                        id = R.string.available_space,
-                        (uiState.availableSpace)
-                    )
-                )
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        modifier = Modifier.weight(1f),
-                        textAlign = TextAlign.Start,
-                        text = stringResource(R.string.switch_to_legacy_app),
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Light
-                    )
-                    Button(
-                        modifier = Modifier
-                            .wrapContentSize(),
-                        onClick = {
-                            onAction(SettingsScreenAction.SetAppV2(false))
+                    val selectedFormat =
+                        uiState.recordingSettings.firstOrNull { it.recordingFormat.isSelected }
+                    SettingSelector(
+                        name = stringResource(id = R.string.sample_rate),
+                        chips = selectedFormat?.sampleRates ?: emptyList(),
+                        onSelect = {
+                            onAction(SettingsScreenAction.SelectSampleRate(it.value))
+                        },
+                        onClickInfo = {
+                            infoText.value = context.getString(R.string.info_frequency)
+                            openInfoDialog.value = true
                         }
-                    ) {
-                        Text(
-                            text = stringResource(id = R.string.btn_apply),
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Light,
+                    )
+                    if (isExpandedBitRatePanel.value != !selectedFormat?.bitRates.isNullOrEmpty()) {
+                        isExpandedBitRatePanel.value = !selectedFormat?.bitRates.isNullOrEmpty()
+                    }
+                    AnimatedVisibility(visible = isExpandedBitRatePanel.value) {
+                        SettingSelector(
+                            name = stringResource(id = R.string.bitrate),
+                            chips = selectedFormat?.bitRates ?: emptyList(),
+                            onSelect = {
+                                onAction(SettingsScreenAction.SelectBitrate(it.value))
+                            },
+                            onClickInfo = {
+                                infoText.value = context.getString(R.string.info_bitrate)
+                                openInfoDialog.value = true
+                            }
                         )
                     }
+                    SettingSelector(
+                        name = stringResource(id = R.string.channels),
+                        chips = selectedFormat?.channelCounts ?: emptyList(),
+                        onSelect = {
+                            onAction(SettingsScreenAction.SelectChannelCount(it.value))
+                        },
+                        onClickInfo = {
+                            infoText.value = context.getString(R.string.info_channels)
+                            openInfoDialog.value = true
+                        }
+                    )
+                    Spacer(modifier = Modifier.size(8.dp))
+                    SettingsItem(stringResource(R.string.rate_app), R.drawable.ic_thumbs) {
+                        rateApp(context)
+                    }
+                    SettingsItem(stringResource(R.string.request), R.drawable.ic_chat_bubble) {
+                        requestFeature(context) {
+                            warningText.value = it
+                            openWarningDialog.value = true
+                        }
+                    }
+                    Spacer(modifier = Modifier.size(8.dp))
+                    InfoTextView(
+                        stringResource(
+                            id = R.string.total_record_count,
+                            (uiState.totalRecordCount)
+                        )
+                    )
+                    InfoTextView(
+                        stringResource(
+                            id = R.string.total_duration,
+                            formatDuration(context.resources, (uiState.totalRecordDuration))
+                        )
+                    )
+                    InfoTextView(
+                        stringResource(
+                            id = R.string.available_space,
+                            (uiState.availableSpace)
+                        )
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            modifier = Modifier.weight(1f),
+                            textAlign = TextAlign.Start,
+                            text = stringResource(R.string.switch_to_legacy_app),
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Light
+                        )
+                        Button(
+                            modifier = Modifier
+                                .wrapContentSize(),
+                            onClick = {
+                                onAction(SettingsScreenAction.SetAppV2(false))
+                            }
+                        ) {
+                            Text(
+                                text = stringResource(id = R.string.btn_apply),
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Light,
+                            )
+                        }
+                    }
+                    AppInfoView(uiState.appName, uiState.appVersion)
+                    Spacer(modifier = Modifier.size(8.dp))
                 }
-            }
-            AppInfoView(uiState.appName, uiState.appVersion)
-            Spacer(modifier = Modifier.size(8.dp))
-            if (openInfoDialog.value) {
-                SettingsInfoDialog(openInfoDialog, infoText.value)
-            }
-            if (openWarningDialog.value) {
-                SettingsWarningDialog(openWarningDialog, warningText.value)
+                if (openInfoDialog.value) {
+                    SettingsInfoDialog(openInfoDialog, infoText.value)
+                }
+                if (openWarningDialog.value) {
+                    SettingsWarningDialog(openWarningDialog, warningText.value)
+                }
             }
         }
     }

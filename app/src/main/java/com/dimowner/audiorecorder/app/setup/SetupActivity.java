@@ -69,6 +69,8 @@ public class SetupActivity extends Activity implements SetupContract.View, View.
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_setup);
 
+		AndroidUtils.applyWindowInsets(this);
+
 //		getWindow().setFlags(
 //				WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
 //				WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);

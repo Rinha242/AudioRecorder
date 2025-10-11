@@ -117,6 +117,8 @@ public class RecordsActivity extends Activity implements RecordsContract.View, V
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_records);
 
+		AndroidUtils.applyWindowInsets(this);
+
 		toolbar = findViewById(R.id.toolbar);
 //		AndroidUtils.setTranslucent(this, true);
 

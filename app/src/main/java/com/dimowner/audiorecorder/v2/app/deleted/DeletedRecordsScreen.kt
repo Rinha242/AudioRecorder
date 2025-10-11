@@ -20,14 +20,17 @@ import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -74,66 +77,70 @@ internal fun DeletedRecordsScreen(
         }
     }
 
-    Surface(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            TitleBar(
-                title = stringResource(id = R.string.trash),
-                onBackPressed = { onPopBackStack() },
-                actionButtonText = stringResource(id = R.string.delete_all2),
-                onActionClick = if (uiState.records.isNotEmpty()) {
-                    { showDeleteAllDialog.value = true }
-                } else null
-            )
-            Text(
-                modifier = Modifier
-                    .padding(16.dp, 8.dp)
-                    .wrapContentSize(),
-                text = stringResource(id = R.string.trash_info),
-                color = MaterialTheme.colorScheme.onSurface,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Normal
-            )
-            Spacer(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(1.dp)
-                    .background(color = MaterialTheme.colorScheme.inverseOnSurface)
-            )
-            LazyColumn(
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                items(uiState.records) { record ->
-                    DeletedRecordsListItemWidget(
-                        name = record.name,
-                        details = record.details,
-                        onClickItem = {
-                            onAction(DeletedRecordsScreenAction.ShowRecordInfo(record.recordId))
-                        },
-                        onClickRestore = {
-                            onAction(DeletedRecordsScreenAction.RestoreRecord(record.recordId))
-                        },
-                        onClickDelete = {
-                            onAction(DeletedRecordsScreenAction.DeleteForeverRecord(record.recordId))
-                        },
-                    )
+    Scaffold(
+        contentWindowInsets = WindowInsets.safeDrawing,
+    ) { innerPadding ->
+        Surface(
+            modifier = Modifier.fillMaxSize().padding(innerPadding)
+        ) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                TitleBar(
+                    title = stringResource(id = R.string.trash),
+                    onBackPressed = { onPopBackStack() },
+                    actionButtonText = stringResource(id = R.string.delete_all2),
+                    onActionClick = if (uiState.records.isNotEmpty()) {
+                        { showDeleteAllDialog.value = true }
+                    } else null
+                )
+                Text(
+                    modifier = Modifier
+                        .padding(16.dp, 8.dp)
+                        .wrapContentSize(),
+                    text = stringResource(id = R.string.trash_info),
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Normal
+                )
+                Spacer(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(1.dp)
+                        .background(color = MaterialTheme.colorScheme.inverseOnSurface)
+                )
+                LazyColumn(
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    items(uiState.records) { record ->
+                        DeletedRecordsListItemWidget(
+                            name = record.name,
+                            details = record.details,
+                            onClickItem = {
+                                onAction(DeletedRecordsScreenAction.ShowRecordInfo(record.recordId))
+                            },
+                            onClickRestore = {
+                                onAction(DeletedRecordsScreenAction.RestoreRecord(record.recordId))
+                            },
+                            onClickDelete = {
+                                onAction(DeletedRecordsScreenAction.DeleteForeverRecord(record.recordId))
+                            },
+                        )
+                    }
                 }
             }
-        }
-        if (showDeleteAllDialog.value) {
-            ConfirmationAlertDialog(
-                onDismissRequest = { showDeleteAllDialog.value = false },
-                onConfirmation = {
-                    onAction(DeletedRecordsScreenAction.DeleteAllRecordsFromRecycle)
-                    showDeleteAllDialog.value = false
-                },
-                dialogTitle = stringResource(id = R.string.warning),
-                dialogText = stringResource(id = R.string.delete_all_records),
-                painter = painterResource(id = R.drawable.ic_delete_forever),
-                positiveButton = stringResource(id = R.string.btn_yes),
-                negativeButton = stringResource(id = R.string.btn_no)
-            )
+            if (showDeleteAllDialog.value) {
+                ConfirmationAlertDialog(
+                    onDismissRequest = { showDeleteAllDialog.value = false },
+                    onConfirmation = {
+                        onAction(DeletedRecordsScreenAction.DeleteAllRecordsFromRecycle)
+                        showDeleteAllDialog.value = false
+                    },
+                    dialogTitle = stringResource(id = R.string.warning),
+                    dialogText = stringResource(id = R.string.delete_all_records),
+                    painter = painterResource(id = R.drawable.ic_delete_forever),
+                    positiveButton = stringResource(id = R.string.btn_yes),
+                    negativeButton = stringResource(id = R.string.btn_no)
+                )
+            }
         }
     }
 }

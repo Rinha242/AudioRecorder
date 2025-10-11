@@ -77,6 +77,8 @@ public class FileBrowserActivity extends Activity implements FileBrowserContract
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_file_browser);
 
+		AndroidUtils.applyWindowInsets(this);
+
 		ImageButton btnBack = findViewById(R.id.btn_back);
 		btnBack.setOnClickListener(v -> {
 			ARApplication.getInjector().releaseFileBrowserPresenter();

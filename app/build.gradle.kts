@@ -3,17 +3,18 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
+    alias(libs.plugins.compose.compiler)
     id("kotlin-parcelize")
 }
 
 android {
     namespace = "com.dimowner.audiorecorder"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.dimowner.audiorecorder"
-        minSdk = 21
-        targetSdk = 34
+        minSdk = 24
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
@@ -84,6 +85,11 @@ android {
             listOf("META-INF/LICENSE.md", "META-INF/LICENSE-notice.md")
         )
     }
+}
+
+composeCompiler {
+    reportsDestination = layout.buildDirectory.dir("compose_compiler")
+    stabilityConfigurationFile = rootProject.layout.projectDirectory.file("stability_config.conf")
 }
 
 dependencies {

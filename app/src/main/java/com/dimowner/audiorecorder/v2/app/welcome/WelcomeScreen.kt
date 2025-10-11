@@ -18,12 +18,15 @@ package com.dimowner.audiorecorder.v2.app.welcome
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -42,49 +45,53 @@ import com.dimowner.audiorecorder.R
 fun WelcomeScreen(
     onGetStarted: () -> Unit
 ) {
-    Surface(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        Column(modifier = Modifier.wrapContentSize()) {
-            Icon(
-                modifier = Modifier
-                    .padding(16.dp)
-                    .wrapContentSize()
-                    .align(Alignment.CenterHorizontally),
-                painter = painterResource(id = R.drawable.waveform),
-                contentDescription = stringResource(id = R.string.app_name)
-            )
-            Text(
-                modifier = Modifier
-                    .padding(8.dp)
-                    .wrapContentSize()
-                    .align(Alignment.CenterHorizontally),
-                text = stringResource(id = R.string.app_name),
-                fontSize = 36.sp,
-                fontWeight = FontWeight.Light,
-                textAlign = TextAlign.Center
-            )
-            Text(
-                modifier = Modifier
-                    .wrapContentSize()
-                    .align(Alignment.CenterHorizontally),
-                text = stringResource(id = R.string.welcome_1),
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Light,
-                textAlign = TextAlign.Center
-            )
-            Spacer(modifier = Modifier.size(42.dp))
-            Button(
-                modifier = Modifier
-                    .padding(8.dp)
-                    .wrapContentSize()
-                    .align(Alignment.CenterHorizontally),
-                onClick = { onGetStarted() }
-            ) {
-                Text(
-                    text = stringResource(id = R.string.btn_get_started),
-                    fontSize = 18.sp,
+    Scaffold(
+        contentWindowInsets = WindowInsets.safeDrawing,
+    ) { innerPadding ->
+        Surface(
+            modifier = Modifier.fillMaxSize().padding(innerPadding)
+        ) {
+            Column(modifier = Modifier.wrapContentSize()) {
+                Icon(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .wrapContentSize()
+                        .align(Alignment.CenterHorizontally),
+                    painter = painterResource(id = R.drawable.waveform),
+                    contentDescription = stringResource(id = R.string.app_name)
                 )
+                Text(
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .wrapContentSize()
+                        .align(Alignment.CenterHorizontally),
+                    text = stringResource(id = R.string.app_name),
+                    fontSize = 36.sp,
+                    fontWeight = FontWeight.Light,
+                    textAlign = TextAlign.Center
+                )
+                Text(
+                    modifier = Modifier
+                        .wrapContentSize()
+                        .align(Alignment.CenterHorizontally),
+                    text = stringResource(id = R.string.welcome_1),
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Light,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.size(42.dp))
+                Button(
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .wrapContentSize()
+                        .align(Alignment.CenterHorizontally),
+                    onClick = { onGetStarted() }
+                ) {
+                    Text(
+                        text = stringResource(id = R.string.btn_get_started),
+                        fontSize = 18.sp,
+                    )
+                }
             }
         }
     }

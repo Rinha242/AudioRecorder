@@ -20,7 +20,11 @@ import android.Manifest
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.app.Activity
-import android.content.*
+import android.content.ActivityNotFoundException
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -42,7 +46,11 @@ import com.dimowner.audiorecorder.util.AndroidUtils
 import com.dimowner.audiorecorder.util.RippleUtils
 import com.dimowner.audiorecorder.util.TimeUtils
 import com.dimowner.audiorecorder.util.isVisible
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
 
@@ -91,6 +99,8 @@ class MoveRecordsActivity : Activity() {
 		binding = ActivityMoveRecordsBinding.inflate(layoutInflater)
 		val view = binding.root
 		setContentView(view)
+
+		AndroidUtils.applyWindowInsets(this)
 
 		viewModel = ARApplication.injector.provideMoveRecordsViewModel(applicationContext)
 

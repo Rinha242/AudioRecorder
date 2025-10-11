@@ -19,10 +19,14 @@ package com.dimowner.audiorecorder.v2.app.info
 import android.text.format.Formatter
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -45,66 +49,70 @@ fun RecordInfoScreen(
 ) {
     val context = LocalContext.current
 
-    Surface(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            TitleBar(
-                stringResource(id = R.string.info),
-                onBackPressed = { onPopBackStack() }
-            )
-            Column(
-                modifier = Modifier
-                    .verticalScroll(rememberScrollState())
-                    .weight(weight = 1f, fill = false)
-            ) {
-                Spacer(modifier = Modifier.size(8.dp))
-                if (recordInfo != null) {
-                    InfoItem(stringResource(R.string.rec_name), recordInfo.name)
-                    InfoItem(stringResource(R.string.rec_format), recordInfo.format)
-                    if (recordInfo.bitrate > 0) {
+    Scaffold(
+        contentWindowInsets = WindowInsets.safeDrawing,
+    ) { innerPadding ->
+        Surface(
+            modifier = Modifier.fillMaxSize().padding(innerPadding)
+        ) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                TitleBar(
+                    stringResource(id = R.string.info),
+                    onBackPressed = { onPopBackStack() }
+                )
+                Column(
+                    modifier = Modifier
+                        .verticalScroll(rememberScrollState())
+                        .weight(weight = 1f, fill = false)
+                ) {
+                    Spacer(modifier = Modifier.size(8.dp))
+                    if (recordInfo != null) {
+                        InfoItem(stringResource(R.string.rec_name), recordInfo.name)
+                        InfoItem(stringResource(R.string.rec_format), recordInfo.format)
+                        if (recordInfo.bitrate > 0) {
+                            InfoItem(
+                                stringResource(R.string.bitrate),
+                                stringResource(id = R.string.value_kbps, recordInfo.bitrate / 1000)
+                            )
+                        }
                         InfoItem(
-                            stringResource(R.string.bitrate),
-                            stringResource(id = R.string.value_kbps, recordInfo.bitrate / 1000)
+                            stringResource(R.string.channels),
+                            stringResource(
+                                when (recordInfo.channelCount) {
+                                    1 -> R.string.mono
+                                    2 -> R.string.stereo
+                                    else -> R.string.empty
+                                }
+                            )
+                        )
+                        InfoItem(
+                            stringResource(R.string.sample_rate),
+                            stringResource(id = R.string.value_khz, recordInfo.sampleRate / 1000)
+                        )
+                        if (recordInfo.duration > 0) {
+                            InfoItem(
+                                stringResource(R.string.rec_duration),
+                                TimeUtils.formatTimeIntervalHourMinSec2(recordInfo.duration)
+                            )
+                        }
+                        InfoItem(
+                            stringResource(R.string.rec_size),
+                            Formatter.formatShortFileSize(context, recordInfo.size)
+                        )
+                        InfoItem(stringResource(R.string.rec_location), recordInfo.location)
+                        InfoItem(
+                            stringResource(R.string.rec_created),
+                            TimeUtils.formatDateTimeLocale(recordInfo.created)
+                        )
+                    } else {
+                        Text(
+                            modifier = Modifier.fillMaxSize().align(Alignment.CenterHorizontally),
+                            text = stringResource(id = R.string.error_unknown),
+                            textAlign = TextAlign.Center
                         )
                     }
-                    InfoItem(
-                        stringResource(R.string.channels),
-                        stringResource(
-                            when (recordInfo.channelCount) {
-                                1 -> R.string.mono
-                                2 -> R.string.stereo
-                                else -> R.string.empty
-                            }
-                        )
-                    )
-                    InfoItem(
-                        stringResource(R.string.sample_rate),
-                        stringResource(id = R.string.value_khz, recordInfo.sampleRate / 1000)
-                    )
-                    if (recordInfo.duration > 0) {
-                        InfoItem(
-                            stringResource(R.string.rec_duration),
-                            TimeUtils.formatTimeIntervalHourMinSec2(recordInfo.duration)
-                        )
-                    }
-                    InfoItem(
-                        stringResource(R.string.rec_size),
-                        Formatter.formatShortFileSize(context, recordInfo.size)
-                    )
-                    InfoItem(stringResource(R.string.rec_location), recordInfo.location)
-                    InfoItem(
-                        stringResource(R.string.rec_created),
-                        TimeUtils.formatDateTimeLocale(recordInfo.created)
-                    )
-                } else {
-                    Text(
-                        modifier = Modifier.fillMaxSize().align(Alignment.CenterHorizontally),
-                        text = stringResource(id = R.string.error_unknown),
-                        textAlign = TextAlign.Center
-                    )
+                    Spacer(modifier = Modifier.size(8.dp))
                 }
-                Spacer(modifier = Modifier.size(8.dp))
             }
         }
     }
