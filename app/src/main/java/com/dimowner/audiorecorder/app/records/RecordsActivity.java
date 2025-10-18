@@ -38,6 +38,7 @@ import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.window.OnBackInvokedCallback;
 
 import com.dimowner.audiorecorder.ARApplication;
 import com.dimowner.audiorecorder.AppConstants;
@@ -103,6 +104,8 @@ public class RecordsActivity extends Activity implements RecordsContract.View, V
 
 	final private List<String> downloadRecords = new ArrayList<>();
 
+	private OnBackInvokedCallback backInvokedCallback;
+
 	public static Intent getStartIntent(Context context) {
 		Intent intent = new Intent(context, RecordsActivity.class);
 		intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
@@ -118,6 +121,14 @@ public class RecordsActivity extends Activity implements RecordsContract.View, V
 		setContentView(R.layout.activity_records);
 
 		AndroidUtils.applyWindowInsets(this);
+
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+			backInvokedCallback = () -> {
+				ARApplication.getInjector().releaseRecordsPresenter();
+				finish();
+			};
+			getOnBackInvokedDispatcher().registerOnBackInvokedCallback(0, backInvokedCallback);
+		}
 
 		toolbar = findViewById(R.id.toolbar);
 //		AndroidUtils.setTranslucent(this, true);
@@ -625,6 +636,14 @@ public class RecordsActivity extends Activity implements RecordsContract.View, V
 		super.onStop();
 		if (presenter != null) {
 			presenter.unbindView();
+		}
+	}
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+			getOnBackInvokedDispatcher().unregisterOnBackInvokedCallback(backInvokedCallback);
 		}
 	}
 

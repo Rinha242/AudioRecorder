@@ -36,6 +36,7 @@ import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.window.OnBackInvokedCallback;
 
 import com.dimowner.audiorecorder.ARApplication;
 import com.dimowner.audiorecorder.AppConstants;
@@ -108,6 +109,8 @@ public class SettingsActivity extends Activity implements SettingsContract.View,
 	private String[] recChannels;
 	private String[] recChannelsKeys;
 
+	private OnBackInvokedCallback backInvokedCallback;
+
 	public static Intent getStartIntent(Context context) {
 		Intent intent = new Intent(context, SettingsActivity.class);
 		intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
@@ -122,6 +125,14 @@ public class SettingsActivity extends Activity implements SettingsContract.View,
 		setContentView(R.layout.activity_settings);
 
 		AndroidUtils.applyWindowInsets(this);
+
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+			backInvokedCallback = () -> {
+                ARApplication.getInjector().releaseSettingsPresenter();
+                finish();
+            };
+			getOnBackInvokedDispatcher().registerOnBackInvokedCallback(0, backInvokedCallback);
+		}
 
 		btnView = findViewById(R.id.btnView);
 
@@ -334,6 +345,9 @@ public class SettingsActivity extends Activity implements SettingsContract.View,
 	protected void onDestroy() {
 		super.onDestroy();
 		colorMap.removeOnThemeColorChangeListener(onThemeColorChangeListener);
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+			getOnBackInvokedDispatcher().unregisterOnBackInvokedCallback(backInvokedCallback);
+		}
 	}
 
 	@SuppressLint("UnsafeOptInUsageWarning")

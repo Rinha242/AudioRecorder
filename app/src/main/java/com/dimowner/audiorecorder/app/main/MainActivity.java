@@ -30,6 +30,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.view.MenuInflater;
 import android.view.View;
+import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -73,6 +74,8 @@ import java.io.File;
 import java.util.List;
 
 import androidx.annotation.NonNull;
+import androidx.core.view.WindowCompat;
+
 import timber.log.Timber;
 
 public class MainActivity extends Activity implements MainContract.View, View.OnClickListener {
@@ -163,6 +166,9 @@ public class MainActivity extends Activity implements MainContract.View, View.On
 		setContentView(R.layout.activity_main);
 
 		AndroidUtils.applyWindowInsets(this);
+
+		Window window = getWindow();
+		WindowCompat.getInsetsController(window, window.getDecorView()).setAppearanceLightStatusBars(false);
 
 		waveformView = findViewById(R.id.record);
 		recordingWaveformView = findViewById(R.id.recording_view);

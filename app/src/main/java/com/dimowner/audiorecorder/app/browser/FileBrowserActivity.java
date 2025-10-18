@@ -36,6 +36,7 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.window.OnBackInvokedCallback;
 
 import com.dimowner.audiorecorder.ARApplication;
 import com.dimowner.audiorecorder.R;
@@ -67,6 +68,8 @@ public class FileBrowserActivity extends Activity implements FileBrowserContract
 
 	private FileBrowserAdapter adapter;
 
+	private OnBackInvokedCallback backInvokedCallback;
+
 	public static Intent getStartIntent(Context context) {
 		return new Intent(context, FileBrowserActivity.class);
 	}
@@ -79,6 +82,13 @@ public class FileBrowserActivity extends Activity implements FileBrowserContract
 
 		AndroidUtils.applyWindowInsets(this);
 
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+			backInvokedCallback = () -> {
+				ARApplication.getInjector().releaseFileBrowserPresenter();
+				finish();
+			};
+			getOnBackInvokedDispatcher().registerOnBackInvokedCallback(0, backInvokedCallback);
+		}
 		ImageButton btnBack = findViewById(R.id.btn_back);
 		btnBack.setOnClickListener(v -> {
 			ARApplication.getInjector().releaseFileBrowserPresenter();
@@ -149,6 +159,14 @@ public class FileBrowserActivity extends Activity implements FileBrowserContract
 		super.onStop();
 		if (presenter != null) {
 			presenter.unbindView();
+		}
+	}
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+			getOnBackInvokedDispatcher().unregisterOnBackInvokedCallback(backInvokedCallback);
 		}
 	}
 
