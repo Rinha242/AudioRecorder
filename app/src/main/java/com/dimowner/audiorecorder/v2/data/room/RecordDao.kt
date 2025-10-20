@@ -31,11 +31,17 @@ interface RecordDao {
     @Query("SELECT * FROM records WHERE id = :recordId")
     fun getRecordById(recordId: Long): RecordEntity?
 
+    @Query("SELECT * FROM records WHERE id IN (:recordIds)")
+    fun getRecordsByIds(recordIds: List<Long>): List<RecordEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertRecord(record: RecordEntity): Long
 
     @Update
-    fun updateRecord(record: RecordEntity)
+    fun updateRecord(record: RecordEntity): Int // Returns the number of updated rows
+
+    @Update
+    fun updateRecords(records: List<RecordEntity>): Int // Returns the total number of updated rows
 
     @Delete
     fun deleteRecord(record: RecordEntity)

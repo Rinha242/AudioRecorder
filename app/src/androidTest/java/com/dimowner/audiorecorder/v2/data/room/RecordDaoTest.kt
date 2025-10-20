@@ -101,8 +101,7 @@ class RecordDaoTest {
         // Verify that the initial ID is 0
         assertEquals(0, record.id)
 
-        // Insert the record into your database (use your actual DAO here)
-        // For demonstration purposes, assume the DAO method is called insertRecord
+        // Insert the record into your database
         val insertedId = recordDao.insertRecord(record)
         val insertedId2 = recordDao.insertRecord(record)
         val insertedId3 = recordDao.insertRecord(record)
@@ -154,17 +153,62 @@ class RecordDaoTest {
     }
 
     @Test
+    fun testGetRecordsByIds() {
+        //Test valid records request
+        val records = recordDao.getRecordsByIds(listOf(2, 45, 91, 28))
+
+        assertEquals(4, records.size)
+        assertEquals("Record 1", records[0].name)
+        assertEquals("Record 27", records[1].name)
+        assertEquals("Record 44", records[2].name)
+        assertEquals("Record 90", records[3].name)
+        assertEquals(2, records[0].id)
+        assertEquals(28, records[1].id)
+        assertEquals(45, records[2].id)
+        assertEquals(91, records[3].id)
+
+        //Test invalid records request (all invalid ids)
+        val invalidRecords = recordDao.getRecordsByIds(listOf(-1, -1000, 10101, 200))
+        assertEquals(0, invalidRecords.size)
+
+        //Test mixed records request (3 valid ids and 2 invalid)
+        val mixedRecords = recordDao.getRecordsByIds(listOf(2, -1, 28, 200, 45))
+        assertEquals(3, mixedRecords.size)
+        assertEquals("Record 1", records[0].name)
+        assertEquals("Record 27", records[1].name)
+        assertEquals("Record 44", records[2].name)
+        assertEquals(2, records[0].id)
+        assertEquals(28, records[1].id)
+        assertEquals(45, records[2].id)
+    }
+
+    @Test
     @Throws(Exception::class)
     fun testUpdateRecord() = runBlocking {
         val record = recordDao.getRecordById(1)
 
-        record?.copy(
-            name = "Updated Record")?.let {
-            recordDao.updateRecord(it)
+        record?.copy(name = "Updated Record")?.let {
+            val updated = recordDao.updateRecord(it)
+            assertEquals(1, updated)
         }
 
         val updated = recordDao.getRecordById(1)
         assertEquals("Updated Record", updated?.name)
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun testUpdateRecords() = runBlocking {
+        val records = recordDao.getRecordsByIds(listOf(1, 2))
+
+        val toUpdate = records.mapIndexed { index, record -> record.copy(name = "Updated record $index") }
+        val updatedCount = recordDao.updateRecords(toUpdate)
+        assertEquals(2, updatedCount)
+
+        val updated1 = recordDao.getRecordById(1)
+        assertEquals("Updated record 0", updated1?.name)
+        val updated2 = recordDao.getRecordById(2)
+        assertEquals("Updated record 1", updated2?.name)
     }
 
     @Test
@@ -266,13 +310,16 @@ class RecordDaoTest {
         val record93 = recordDao.getRecordById(93)
 
         record1?.copy(isMovedToRecycle = true)?.let {
-            recordDao.updateRecord(it)
+            val updated = recordDao.updateRecord(it)
+            assertEquals(1, updated)
         }
         record50?.copy(isMovedToRecycle = true)?.let {
-            recordDao.updateRecord(it)
+            val updated = recordDao.updateRecord(it)
+            assertEquals(1, updated)
         }
         record93?.copy(isMovedToRecycle = true)?.let {
-            recordDao.updateRecord(it)
+            val updated = recordDao.updateRecord(it)
+            assertEquals(1, updated)
         }
         val records2 = recordDao.getMovedToRecycleRecords()
         assertEquals(3, records2.size)
@@ -294,17 +341,20 @@ class RecordDaoTest {
         val record93 = recordDao.getRecordById(93)
 
         record1?.copy(isMovedToRecycle = true)?.let {
-            recordDao.updateRecord(it)
+            val updated = recordDao.updateRecord(it)
+            assertEquals(1, updated)
         }
         val count2 = recordDao.getMovedToRecycleRecordsCount()
         assertEquals(1, count2)
         record50?.copy(isMovedToRecycle = true)?.let {
-            recordDao.updateRecord(it)
+            val updated = recordDao.updateRecord(it)
+            assertEquals(1, updated)
         }
         val count3 = recordDao.getMovedToRecycleRecordsCount()
         assertEquals(2, count3)
         record93?.copy(isMovedToRecycle = true)?.let {
-            recordDao.updateRecord(it)
+            val updated = recordDao.updateRecord(it)
+            assertEquals(1, updated)
         }
         val count4 = recordDao.getMovedToRecycleRecordsCount()
         assertEquals(3, count4)

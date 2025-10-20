@@ -565,7 +565,7 @@ fun <T> RecordsDropDownMenu(
 
 @Composable
 fun DeleteDialog(
-    recordName: String,
+    dialogText: String,
     onAcceptClick: () -> Unit,
     onDismissClick: () -> Unit,
 ) {
@@ -573,7 +573,7 @@ fun DeleteDialog(
         onDismissRequest = { onDismissClick() },
         onConfirmation = { onAcceptClick() },
         dialogTitle = stringResource(id = R.string.warning),
-        dialogText = stringResource(id = R.string.delete_record, recordName),
+        dialogText = dialogText,
         painter = painterResource(id = R.drawable.ic_delete_forever),
         positiveButton = stringResource(id = R.string.btn_yes),
         negativeButton = stringResource(id = R.string.btn_no)
@@ -583,12 +583,12 @@ fun DeleteDialog(
 @Preview(showBackground = true)
 @Composable
 fun DeleteDialogPreview() {
-    DeleteDialog("Record-14", {}, {})
+    DeleteDialog(stringResource(id = R.string.delete_record,"Record-14"), {}, {})
 }
 
 @Composable
 fun SaveAsDialog(
-    recordName: String,
+    dialogText: String,
     onAcceptClick: () -> Unit,
     onDismissClick: () -> Unit,
 ) {
@@ -596,10 +596,7 @@ fun SaveAsDialog(
         onDismissRequest = { onDismissClick() },
         onConfirmation = { onAcceptClick() },
         dialogTitle = stringResource(id = R.string.save_as),
-        dialogText = stringResource(
-            id = R.string.record_name_will_be_copied_into_downloads,
-            recordName
-        ),
+        dialogText = dialogText,
         painter = painterResource(id = R.drawable.ic_save_alt),
         positiveButton = stringResource(id = R.string.btn_yes),
         negativeButton = stringResource(id = R.string.btn_no)
@@ -609,7 +606,10 @@ fun SaveAsDialog(
 @Preview(showBackground = true)
 @Composable
 fun SaveAsDialogPreview() {
-    SaveAsDialog("Record-14", {}, {})
+    SaveAsDialog(
+        dialogText = stringResource(id = R.string.record_name_will_be_copied_into_downloads, "Record-14"),
+        {}, {}
+    )
 }
 
 data class DropDownMenuItem<T>(

@@ -17,7 +17,7 @@
 package com.dimowner.audiorecorder.v2.app.records
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,6 +34,7 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
@@ -45,6 +46,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.DeviceFontFamilyName
@@ -187,7 +190,9 @@ fun RecordListItemView(
     details: String,
     duration: String,
     isBookmarked: Boolean,
+    isSelected: Boolean,
     onClickItem: () -> Unit,
+    onLongClickItem: () -> Unit,
     onClickBookmark: (Boolean) -> Unit,
     onClickMenu: (RecordDropDownMenuItemId) -> Unit,
 ) {
@@ -195,7 +200,15 @@ fun RecordListItemView(
 
     Row(
         modifier = Modifier
-            .clickable { onClickItem() }
+            .background(color = if (isSelected) colorResource(R.color.selected_item_color) else Color.Transparent)
+            .combinedClickable(
+                onClick = {
+                    onClickItem()
+                },
+                onLongClick = {
+                    onLongClickItem()
+                }
+            )
             .fillMaxWidth()
             .wrapContentHeight()
     ) {
@@ -314,5 +327,106 @@ fun RecordListItemView(
 @Preview(showBackground = true)
 @Composable
 fun RecordListItemPreview() {
-    RecordListItemView("Label", "Value", "Duration", true, {}, {}, {})
+    RecordListItemView("Label", "Value", "Duration", true, false,  {}, {}, {}, {})
+}
+
+@Composable
+fun MultiSelectMenu(
+    selectedItemsCount: Int,
+    onCancelClick: () -> Unit,
+    onShareClick: () -> Unit,
+    onDownloadClick: () -> Unit,
+    onDeleteClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .height(64.dp)
+            .fillMaxWidth()
+            .background(color = MaterialTheme.colorScheme.surface),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Start
+    ) {
+        FilledIconButton(
+            onClick = onCancelClick,
+            modifier = Modifier
+                .padding(8.dp)
+                .align(Alignment.CenterVertically),
+            colors = IconButtonDefaults.filledIconButtonColors(
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.onSurface
+            )
+        ) {
+            Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = "Navigate back",
+                modifier = Modifier.size(24.dp)
+            )
+        }
+
+        Text(
+            text = stringResource(R.string.selected, selectedItemsCount),
+            color = MaterialTheme.colorScheme.onSurface,
+            fontSize = 22.sp,
+            fontFamily = FontFamily(
+                Font(
+                    DeviceFontFamilyName("sans-serif"),
+                    weight = FontWeight.Light
+                )
+            ),
+        )
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        FilledIconButton(
+            onClick = onShareClick,
+            colors = IconButtonDefaults.filledIconButtonColors(
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.onSurface
+            )
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_share),
+                contentDescription = stringResource(id = R.string.share),
+                modifier = Modifier
+                    .size(36.dp)
+                    .padding(6.dp)
+            )
+        }
+        FilledIconButton(
+            onClick = onDownloadClick,
+            colors = IconButtonDefaults.filledIconButtonColors(
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.onSurface
+            )
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_save_alt),
+                contentDescription = stringResource(id = R.string.save_as),
+                modifier = Modifier
+                    .size(36.dp)
+                    .padding(6.dp)
+            )
+        }
+        FilledIconButton(
+            onClick = onDeleteClick,
+            colors = IconButtonDefaults.filledIconButtonColors(
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.onSurface
+            )
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_delete),
+                contentDescription = stringResource(id = R.string.delete),
+                modifier = Modifier
+                    .size(36.dp)
+                    .padding(6.dp)
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun MultiSelectMenuPreview() {
+    MultiSelectMenu(3, {},{}, {}, {})
 }

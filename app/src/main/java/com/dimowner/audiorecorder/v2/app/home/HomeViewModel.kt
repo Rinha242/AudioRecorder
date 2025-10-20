@@ -344,7 +344,7 @@ class HomeViewModel @Inject constructor(
         showProgress(true)
         viewModelScope.launch(ioDispatcher) {
             val recordId = prefs.activeRecordId
-            if (recordId != -1L && recordsDataSource.moveRecordToRecycle(recordId)) {
+            if (recordId >= 0 && recordsDataSource.moveRecordToRecycle(recordId)) {
                 prefs.activeRecordId = -1
                 //TODO: Notify active record deleted
                 updateState()

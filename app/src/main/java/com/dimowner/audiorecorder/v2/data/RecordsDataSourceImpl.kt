@@ -47,6 +47,15 @@ class RecordsDataSourceImpl @Inject internal constructor(
         }
     }
 
+    override suspend fun getRecords(ids: List<Long>): List<Record> {
+        val validIds = ids.filter { it >= 0 }
+        return if (validIds.isNotEmpty()) {
+            recordDao.getRecordsByIds(ids).map{ it.toRecord() }
+        } else {
+            emptyList()
+        }
+    }
+
     override suspend fun getActiveRecord(): Record? {
         val id = prefs.activeRecordId
         return if (id >= 0) {
@@ -90,11 +99,16 @@ class RecordsDataSourceImpl @Inject internal constructor(
         return recordDao.insertRecord(record.toRecordEntity())
     }
 
-    override suspend fun updateRecord(record: Record) {
-        return recordDao.updateRecord(record.toRecordEntity())
+    override suspend fun updateRecord(record: Record): Boolean {
+        return recordDao.updateRecord(record.toRecordEntity()) == 1
+    }
+
+    override suspend fun updateRecords(records: List<Record>): Int {
+        return recordDao.updateRecords(records.map { it.toRecordEntity() })
     }
 
     override suspend fun renameRecord(record: Record, newName: String): Boolean {
+        //TODO: this function requires improvements
         try {
             val transactionId = recordEditDao.insertRecordsEditOperation(
                 createRenameEditOperation(record.id, newName)
@@ -204,10 +218,16 @@ class RecordsDataSourceImpl @Inject internal constructor(
 
     override suspend fun moveRecordToRecycle(id: Long): Boolean {
         return recordDao.getRecordById(id)?.let { recordToRecycle ->
-            return@let moveRecordToRecycle(recordToRecycle)
+            return@let recordDao.updateRecord(recordToRecycle.copy(isMovedToRecycle = true)) == 1
         } ?: false
     }
 
+    override suspend fun moveRecordsToRecycle(ids: List<Long>): Int {
+        val recordsToRecycle = recordDao.getRecordsByIds(ids).map { it.copy(isMovedToRecycle = true) }
+        return recordDao.updateRecords(recordsToRecycle)
+    }
+
+    @Deprecated("Too complex logic. We don't need to mark record file as deleted")
     private fun moveRecordToRecycle(recordToRecycle: RecordEntity): Boolean {
         try {
             //Save edit operation. Start transaction

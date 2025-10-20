@@ -41,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -221,19 +222,26 @@ internal fun HomeScreen(
                         .height(12.dp)
                 )
                 if (showDeleteDialog.value) {
-                    DeleteDialog(uiState.recordName, onAcceptClick = {
-                        showDeleteDialog.value = false
-                        onAction(HomeScreenAction.DeleteActiveRecord)
-                    }, onDismissClick = {
-                        showDeleteDialog.value = false
-                    })
+                    DeleteDialog(
+                        dialogText = stringResource(id = R.string.delete_record, uiState.recordName),
+                        onAcceptClick = {
+                            showDeleteDialog.value = false
+                            onAction(HomeScreenAction.DeleteActiveRecord)
+                        }, onDismissClick = {
+                            showDeleteDialog.value = false
+                        }
+                    )
                 } else if (showSaveAsDialog.value) {
-                    SaveAsDialog(uiState.recordName, onAcceptClick = {
-                        showSaveAsDialog.value = false
-                        onAction(HomeScreenAction.SaveActiveRecordAs)
-                    }, onDismissClick = {
-                        showSaveAsDialog.value = false
-                    })
+                    SaveAsDialog(
+                        dialogText = stringResource(
+                            id = R.string.record_name_will_be_copied_into_downloads, uiState.recordName),
+                        onAcceptClick = {
+                            showSaveAsDialog.value = false
+                            onAction(HomeScreenAction.SaveActiveRecordAs)
+                        }, onDismissClick = {
+                            showSaveAsDialog.value = false
+                        }
+                    )
                 } else if (showRenameDialog.value) {
                     RenameAlertDialog(
                         uiState.recordName,

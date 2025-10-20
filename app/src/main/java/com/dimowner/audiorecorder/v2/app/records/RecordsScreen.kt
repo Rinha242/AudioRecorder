@@ -44,6 +44,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -203,7 +204,8 @@ internal fun RecordsScreen(
                     //Show nothing because of progress takes very short period of time
                 } else if (uiState.records.isEmpty()) {
                     Column(
-                        modifier = Modifier.wrapContentSize()
+                        modifier = Modifier
+                            .wrapContentSize()
                             .align(Alignment.Center),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
@@ -227,25 +229,47 @@ internal fun RecordsScreen(
                     }
                 }
                 Column(modifier = Modifier.fillMaxSize()) {
-                    RecordsTopBar(
-                        stringResource(id = R.string.records),
-                        uiState.sortOrder.toText(context),
-                        bookmarksSelected = uiState.bookmarksSelected,
-                        onBackPressed = { onPopBackStack() },
-                        onSortItemClick = { order ->
-                            onAction(RecordsScreenAction.UpdateListWithSortOrder(order))
-                        },
-                        onBookmarksClick = { bookmarksSelected ->
-                            onAction(RecordsScreenAction.UpdateListWithBookmarks(bookmarksSelected))
-                        }
-                    )
+                    if (uiState.selectedRecords.isEmpty()) {
+                        RecordsTopBar(
+                            stringResource(id = R.string.records),
+                            uiState.sortOrder.toText(context),
+                            bookmarksSelected = uiState.bookmarksSelected,
+                            onBackPressed = { onPopBackStack() },
+                            onSortItemClick = { order ->
+                                onAction(RecordsScreenAction.UpdateListWithSortOrder(order))
+                            },
+                            onBookmarksClick = { bookmarksSelected ->
+                                onAction(
+                                    RecordsScreenAction.UpdateListWithBookmarks(
+                                        bookmarksSelected
+                                    )
+                                )
+                            }
+                        )
+                    } else {
+                        MultiSelectMenu(
+                            selectedItemsCount = uiState.selectedRecords.size,
+                            onCancelClick = { onAction(RecordsScreenAction.MultiSelectCancel)},
+                            onShareClick = {
+                                onAction(RecordsScreenAction.MultiSelectShare(uiState.selectedRecords))
+                            },
+                            onDownloadClick = {
+                                onAction(RecordsScreenAction.MultiSelectSaveAsRequest)
+                            },
+                            onDeleteClick = {
+                                onAction(RecordsScreenAction.MultiSelectMoveToRecycleRequest)
+                            },
+                        )
+                    }
                     if (uiState.showDeletedRecordsButton) {
                         SettingsItem(stringResource(R.string.trash), R.drawable.ic_delete) {
                             showDeletedRecordsScreen()
                         }
                     }
                     LazyColumn(
-                        modifier = Modifier.fillMaxWidth().weight(1f),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
                     ) {
                         items(uiState.records) { record ->
                             RecordListItemView(
@@ -253,12 +277,21 @@ internal fun RecordsScreen(
                                 details = record.details,
                                 duration = record.duration,
                                 isBookmarked = record.isBookmarked,
+                                isSelected = record.recordId == uiState.activeRecord?.recordId
+                                        || uiState.selectedRecords.contains(record),
                                 onClickItem = {
-                                    //Reset Play panel position
+                                    if (uiState.selectedRecords.isEmpty()) {
+                                        //Reset Play panel position
 //                                    coroutineScope.launch { animatableY.snapTo(startY) }
-                                    onAction(RecordsScreenAction.OnItemSelect(record.recordId))
-                                    onHomeAction(HomeScreenAction.InitHomeScreen)
-                                    onHomeAction(HomeScreenAction.OnPlayClick)
+                                        onAction(RecordsScreenAction.OnItemSelect(record))
+                                        onHomeAction(HomeScreenAction.InitHomeScreen)
+                                        onHomeAction(HomeScreenAction.OnPlayClick)
+                                    } else {
+                                        onAction(RecordsScreenAction.MultiSelectAddItem(record))
+                                    }
+                                },
+                                onLongClickItem = {
+                                    onAction(RecordsScreenAction.MultiSelectAddItem(record))
                                 },
                                 onClickBookmark = { isBookmarked ->
                                     onAction(
@@ -311,29 +344,60 @@ internal fun RecordsScreen(
                         }
                     }
                     if (uiState.showMoveToRecycleDialog) {
-                        uiState.selectedRecord?.let { record ->
-                            DeleteDialog(record.name, onAcceptClick = {
-                                onAction(RecordsScreenAction.MoveRecordToRecycle(record.recordId))
-                            }, onDismissClick = {
-                                onAction(RecordsScreenAction.OnMoveToRecycleRecordDismiss)
-                            })
+                        uiState.operationSelectedRecord?.let { record ->
+                            DeleteDialog(
+                                dialogText = stringResource(id = R.string.delete_record, record.name),
+                                onAcceptClick = {
+                                    onAction(RecordsScreenAction.MoveRecordToRecycle(record.recordId))
+                                }, onDismissClick = {
+                                    onAction(RecordsScreenAction.OnMoveToRecycleRecordDismiss)
+                                }
+                            )
                         }
                     } else if (uiState.showSaveAsDialog) {
-                        uiState.selectedRecord?.let { record ->
-                            SaveAsDialog(record.name, onAcceptClick = {
-                                onAction(RecordsScreenAction.SaveRecordAs(record.recordId))
-                            }, onDismissClick = {
-                                onAction(RecordsScreenAction.OnSaveAsDismiss)
-                            })
+                        uiState.operationSelectedRecord?.let { record ->
+                            SaveAsDialog(
+                                dialogText = stringResource(
+                                    id = R.string.record_name_will_be_copied_into_downloads,
+                                    record.name),
+                                onAcceptClick = {
+                                    onAction(RecordsScreenAction.SaveRecordAs(record.recordId))
+                                }, onDismissClick = {
+                                    onAction(RecordsScreenAction.OnSaveAsDismiss)
+                                }
+                            )
                         }
                     } else if (uiState.showRenameDialog) {
-                        uiState.selectedRecord?.let { record ->
+                        uiState.operationSelectedRecord?.let { record ->
                             RenameAlertDialog(record.name, onAcceptClick = {
                                 onAction(RecordsScreenAction.RenameRecord(record.recordId, it))
                             }, onDismissClick = {
                                 onAction(RecordsScreenAction.OnRenameRecordDismiss)
                             })
                         }
+                    } else if (uiState.showMoveToRecycleMultipleDialog) {
+                        val count = uiState.selectedRecords.size
+                        val titleText = pluralStringResource(
+                            id = R.plurals.delete_selected_records,
+                            count = count, count)
+                        DeleteDialog(titleText, onAcceptClick = {
+                            onAction(RecordsScreenAction.MultiSelectMoveToRecycle)
+                        }, onDismissClick = {
+                            onAction(RecordsScreenAction.MultiSelectMoveToRecycleDismiss)
+                        })
+                    } else if (uiState.showSaveAsMultipleDialog) {
+                        val count = uiState.selectedRecords.size
+                        val titleText = pluralStringResource(
+                            id = R.plurals.download_selected_records,
+                            count = count, count)
+
+                        SaveAsDialog(titleText,
+                            onAcceptClick = {
+                                onAction(RecordsScreenAction.MultiSelectSaveAs)
+                            }, onDismissClick = {
+                                onAction(RecordsScreenAction.MultiSelectSaveAsDismiss)
+                            }
+                        )
                     }
                 }
                 TouchPanel(
@@ -426,7 +490,7 @@ fun RecordsScreenPreview() {
             showRenameDialog = false,
             showMoveToRecycleDialog = false,
             showSaveAsDialog = false,
-            selectedRecord = RecordListItem(
+            operationSelectedRecord = RecordListItem(
                 recordId = 2,
                 name = "Test record 2",
                 details = "4.5 MB, mp3, 128 kbps, 32 kHz",

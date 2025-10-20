@@ -116,6 +116,60 @@ class RecordsDataSourceImplTest {
     }
 
     @Test
+    fun test_getRecords() = runBlocking {
+        val id1 = 101L
+        val id2 = 201L
+        val recordName1 = "record 1"
+        val recordName2 = "record 2"
+
+        val testRecord1 = testRecordEntity.copy(id = id1, name = recordName1)
+        val testRecord2 = testRecordEntity.copy(id = id2, name = recordName2)
+
+        every { recordDao.getRecordsByIds(listOf(id1, id2)) } returns listOf(testRecord1, testRecord2)
+
+        val emptyList = recordsDataSourceImpl.getRecords(listOf(-1))
+        assertTrue(emptyList.isEmpty())
+
+        val result = recordsDataSourceImpl.getRecords(listOf(id1, id2))
+
+        assertEquals(2, result.size)
+        assertEquals(id1, result[0].id)
+        assertEquals(id2, result[1].id)
+        assertEquals(recordName1, result[0].name)
+        assertEquals(recordName2, result[1].name)
+    }
+
+    @Test
+    fun test_updateRecord() = runBlocking {
+        val id = 101L
+        val recordName = "record 1"
+        val record = testRecordEntity.copy(id = id, name = recordName).toRecord()
+
+        every {  recordDao.updateRecord(record.toRecordEntity()) } returns 1
+
+        val isUpdated = recordsDataSourceImpl.updateRecord(record)
+        assertTrue(isUpdated)
+    }
+
+    @Test
+    fun test_updateRecords() = runBlocking {
+        val id1 = 101L
+        val id2 = 201L
+        val recordName1 = "record 1"
+        val recordName2 = "record 2"
+
+        val testRecord1 = testRecordEntity.copy(id = id1, name = recordName1).toRecord()
+        val testRecord2 = testRecordEntity.copy(id = id2, name = recordName2).toRecord()
+
+        every {  recordDao.updateRecords(
+            listOf(testRecord1.toRecordEntity(), testRecord2.toRecordEntity()))
+        } returns 2
+
+        val updatedCount = recordsDataSourceImpl.updateRecords(listOf(testRecord1, testRecord2))
+        assertEquals(2, updatedCount)
+    }
+
+    @Test
     fun test_getActiveRecord() = runBlocking {
         val id = 101L
         every { recordDao.getRecordById(id) } returns testRecordEntity
@@ -159,7 +213,7 @@ class RecordsDataSourceImplTest {
         every { recordEditDao.insertRecordsEditOperation(capture(recordEditOperation)) } returns transactionId
         every { fileDataSource.renameFile(record.path, newName) } returns renamedFile
         every { renamedFile.absolutePath } returns renamedPath
-        every { recordDao.updateRecord(any()) } returns Unit
+        every { recordDao.updateRecord(any()) } returns 1
 
         val result = recordsDataSourceImpl.renameRecord(record, newName)
 
@@ -413,7 +467,7 @@ class RecordsDataSourceImplTest {
         every { recordEditDao.insertRecordsEditOperation(capture(recordEditOperation)) } returns transactionId
         every { recordDao.getRecordById(recordId) } returns testRecordEntity
         every { fileDataSource.markAsRecordDeleted(testRecordEntity.path) } returns updatedPath
-        every { recordDao.updateRecord(any()) } returns Unit
+        every { recordDao.updateRecord(any()) } returns 1
 
         val result = recordsDataSourceImpl.moveRecordToRecycle(recordId)
 
@@ -560,7 +614,7 @@ class RecordsDataSourceImplTest {
         every { recordEditDao.insertRecordsEditOperation(capture(recordEditOperation)) } returns transactionId
         every { recordDao.getRecordById(recordId) } returns testRecordEntity
         every { fileDataSource.unmarkRecordAsDeleted(testRecordEntity.path) } returns updatedPath
-        every { recordDao.updateRecord(any()) } returns Unit
+        every { recordDao.updateRecord(any()) } returns 1
 
         val result = recordsDataSourceImpl.restoreRecordFromRecycle(recordId)
 

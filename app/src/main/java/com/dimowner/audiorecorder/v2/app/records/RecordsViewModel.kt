@@ -86,6 +86,7 @@ internal class RecordsViewModel @Inject constructor(
             override fun onStopPlay() {
                 _state.value = _state.value.copy(
                     showRecordPlaybackPanel = false,
+                    activeRecord = null,
                 )
             }
             override fun onError(throwable: AppException) {
@@ -105,7 +106,7 @@ internal class RecordsViewModel @Inject constructor(
         val deletedRecordsCount = recordsDataSource.getMovedToRecycleRecordsCount()
         withContext(mainDispatcher) {
             _state.value = RecordsScreenState(
-                sortOrder = SortOrder.DateAsc,
+                sortOrder = state.value.sortOrder,
                 records = records.map { it.toRecordListItem(context) },
                 showDeletedRecordsButton = deletedRecordsCount > 0,
                 deletedRecordsCount = deletedRecordsCount,
@@ -156,9 +157,13 @@ internal class RecordsViewModel @Inject constructor(
         }
     }
 
-    fun onItemSelect(recordId: Long) {
+    fun onItemSelect(record: RecordListItem) {
+        multiSelectCancel()
         audioPlayer.stop()
-        prefs.activeRecordId = recordId
+        prefs.activeRecordId = record.recordId
+        _state.value = _state.value.copy(
+            activeRecord = record
+        )
     }
 
     fun updateListWithSortOrder(sortOrderId: SortDropDownMenuItemId) {
@@ -182,6 +187,7 @@ internal class RecordsViewModel @Inject constructor(
     }
 
     fun shareRecord(recordId: Long) {
+        multiSelectCancel()
         viewModelScope.launch(ioDispatcher) {
             val record = recordsDataSource.getRecord(recordId)
             if (record != null) {
@@ -198,6 +204,7 @@ internal class RecordsViewModel @Inject constructor(
     }
 
     fun showRecordInfo(recordId: Long) {
+        multiSelectCancel()
         viewModelScope.launch(ioDispatcher) {
             recordsDataSource.getRecord(recordId)?.toRecordInfoState()?.let {
                 emitEvent(RecordsScreenEvent.RecordInformationEvent(it))
@@ -206,9 +213,10 @@ internal class RecordsViewModel @Inject constructor(
     }
 
     fun onRenameRecordRequest(record: RecordListItem) {
+        multiSelectCancel()
         _state.value = _state.value.copy(
             showRenameDialog = true,
-            selectedRecord = record
+            operationSelectedRecord = record
         )
     }
 
@@ -224,7 +232,7 @@ internal class RecordsViewModel @Inject constructor(
                 if (recordsDataSource.renameRecord(record, newName)) {
                     _state.value = _state.value.copy(
                         showRenameDialog = false,
-                        selectedRecord = null,
+                        operationSelectedRecord = null,
                         records = _state.value.records.map {
                             if (it.recordId == record.id) {
                                 it.copy(name = newName)
@@ -236,7 +244,7 @@ internal class RecordsViewModel @Inject constructor(
                 } else {
                     _state.value = _state.value.copy(
                         showRenameDialog = false,
-                        selectedRecord = null
+                        operationSelectedRecord = null
                     )
                 }
             }
@@ -244,6 +252,7 @@ internal class RecordsViewModel @Inject constructor(
     }
 
     fun openRecordWithAnotherApp(recordId: Long) {
+        multiSelectCancel()
         audioPlayer.stop()
         viewModelScope.launch(ioDispatcher) {
             val record = recordsDataSource.getRecord(recordId)
@@ -260,9 +269,10 @@ internal class RecordsViewModel @Inject constructor(
     }
 
     fun onSaveAsRequest(record: RecordListItem) {
+        multiSelectCancel()
         _state.value = _state.value.copy(
             showSaveAsDialog = true,
-            selectedRecord = record
+            operationSelectedRecord = record
         )
     }
 
@@ -273,6 +283,7 @@ internal class RecordsViewModel @Inject constructor(
     }
 
     fun saveRecordAs(recordId: Long) {
+        multiSelectCancel()
         viewModelScope.launch(ioDispatcher) {
             recordsDataSource.getRecord(recordId)?.let {
                 DownloadService.startNotification(
@@ -282,15 +293,16 @@ internal class RecordsViewModel @Inject constructor(
             }
             _state.value = _state.value.copy(
                 showSaveAsDialog = false,
-                selectedRecord = null
+                operationSelectedRecord = null
             )
         }
     }
 
     fun onMoveToRecycleRecordRequest(record: RecordListItem) {
+        multiSelectCancel()
         _state.value = _state.value.copy(
             showMoveToRecycleDialog = true,
-            selectedRecord = record
+            operationSelectedRecord = record
         )
     }
 
@@ -311,7 +323,8 @@ internal class RecordsViewModel @Inject constructor(
                         records = _state.value.records.filter { it.recordId != recordId },
                         showMoveToRecycleDialog = false,
                         showDeletedRecordsButton = true,
-                        selectedRecord = null
+                        operationSelectedRecord = null,
+                        activeRecord = null,
                     )
                 }
             } else {
@@ -330,7 +343,7 @@ internal class RecordsViewModel @Inject constructor(
             is RecordsScreenAction.UpdateListWithSortOrder -> updateListWithSortOrder(action.sortOrderId)
             is RecordsScreenAction.UpdateListWithBookmarks -> updateListWithBookmarks(action.bookmarksSelected)
             is RecordsScreenAction.BookmarkRecord -> bookmarkRecord(action.recordId, action.addToBookmarks)
-            is RecordsScreenAction.OnItemSelect -> onItemSelect(action.recordId)
+            is RecordsScreenAction.OnItemSelect -> onItemSelect(action.record)
             is RecordsScreenAction.ShareRecord -> shareRecord(action.recordId)
             is RecordsScreenAction.ShowRecordInfo -> showRecordInfo(action.recordId)
             is RecordsScreenAction.OnRenameRecordRequest -> onRenameRecordRequest(action.record)
@@ -343,6 +356,126 @@ internal class RecordsViewModel @Inject constructor(
             RecordsScreenAction.OnSaveAsDismiss -> onSaveAsDismiss()
             is RecordsScreenAction.RenameRecord -> renameRecord(action.recordId, action.newName)
             RecordsScreenAction.OnRenameRecordDismiss -> onRenameRecordDismiss()
+            is RecordsScreenAction.MultiSelectAddItem -> multiSelectAdd(action.selectedRecord)
+            RecordsScreenAction.MultiSelectCancel -> multiSelectCancel()
+            is RecordsScreenAction.MultiSelectMoveToRecycle -> multiSelectMoveToRecycle()
+            is RecordsScreenAction.MultiSelectMoveToRecycleRequest ->
+                multiSelectMoveToRecycleRequest()
+            RecordsScreenAction.MultiSelectMoveToRecycleDismiss -> multiSelectMoveToRecycleDismiss()
+            is RecordsScreenAction.MultiSelectSaveAs -> multiSelectSaveAs()
+            is RecordsScreenAction.MultiSelectSaveAsRequest -> multiSelectSaveAsRequest()
+            RecordsScreenAction.MultiSelectSaveAsDismiss -> multiSelectSaveAsDismiss()
+            is RecordsScreenAction.MultiSelectShare -> multiSelectShare(action.selectedRecords)
+        }
+    }
+
+    private fun multiSelectAdd(selected: RecordListItem) {
+        audioPlayer.stop()
+        val records = _state.value.selectedRecords.toMutableList()
+        if (records.contains(selected)) {
+           records.remove(selected)
+        } else {
+            records.add(selected)
+        }
+        _state.value = _state.value.copy(
+            selectedRecords = records,
+        )
+    }
+
+    private fun multiSelectCancel() {
+        _state.value = _state.value.copy(
+            selectedRecords = emptyList(),
+        )
+    }
+
+    private fun multiSelectShare(selectedRecords: List<RecordListItem>) {
+        viewModelScope.launch(ioDispatcher) {
+            val recordList = recordsDataSource.getRecords(selectedRecords.map { it.recordId })
+            if (recordList.isNotEmpty()) {
+                withContext(mainDispatcher) {
+                    AndroidUtils.shareAudioFiles(
+                        getApplication<Application>().applicationContext,
+                        recordList.map { it.path }
+                    )
+                    multiSelectCancel()
+                }
+            } else {
+                //TODO: handle error here
+            }
+        }
+    }
+
+    private fun multiSelectSaveAsRequest() {
+        _state.value = _state.value.copy(
+            showSaveAsMultipleDialog = true,
+        )
+    }
+
+    private fun multiSelectSaveAs() {
+        viewModelScope.launch(ioDispatcher) {
+            val recordList = recordsDataSource.getRecords(state.value.selectedRecords.map { it.recordId })
+            if (recordList.isNotEmpty()) {
+                withContext(mainDispatcher) {
+                    //Download record file with Service
+                    DownloadService.startNotification(
+                        getApplication<Application>().applicationContext,
+                        recordList
+                            .map { it.path }
+                            .toCollection(ArrayList())
+                    )
+                    multiSelectCancel()
+                    _state.value = _state.value.copy(
+                        showSaveAsMultipleDialog = false,
+                    )
+                }
+            } else {
+                //TODO: handle error here
+            }
+        }
+    }
+
+    private fun multiSelectMoveToRecycleRequest() {
+        _state.value = _state.value.copy(
+            showMoveToRecycleMultipleDialog = true,
+        )
+    }
+
+    private fun multiSelectMoveToRecycleDismiss() {
+        _state.value = _state.value.copy(
+            showMoveToRecycleMultipleDialog = false,
+        )
+    }
+
+    private fun multiSelectSaveAsDismiss() {
+        _state.value = _state.value.copy(
+            showSaveAsMultipleDialog = false,
+        )
+    }
+
+    private fun multiSelectMoveToRecycle() {
+        viewModelScope.launch(ioDispatcher) {
+            val deletedCount = recordsDataSource.moveRecordsToRecycle(state.value.selectedRecords.map { it.recordId })
+            if (deletedCount > 0) {
+                val context: Context = getApplication<Application>().applicationContext
+                val records = recordsDataSource.getRecords(
+                    sortOrder = state.value.sortOrder,
+                    page = 1,
+                    pageSize = 100,
+                    isBookmarked = state.value.bookmarksSelected,
+                )
+                val deletedRecordsCount = recordsDataSource.getMovedToRecycleRecordsCount()
+                withContext(mainDispatcher) {
+                    multiSelectCancel()
+                    _state.value = _state.value.copy(
+                        records = records.map { it.toRecordListItem(context) },
+                        showDeletedRecordsButton = deletedRecordsCount > 0,
+                        deletedRecordsCount = deletedRecordsCount,
+                        showMoveToRecycleMultipleDialog = false,
+                    )
+                }
+            } else {
+                //TODO: show an error here.
+            }
         }
     }
 
@@ -355,6 +488,7 @@ internal class RecordsViewModel @Inject constructor(
 
 data class RecordsScreenState(
     val records: List<RecordListItem> = emptyList(),
+    val selectedRecords: List<RecordListItem> = emptyList(),
     val sortOrder: SortOrder = SortOrder.DateDesc,
     val bookmarksSelected: Boolean = false,
     val showDeletedRecordsButton: Boolean = false,
@@ -364,8 +498,12 @@ data class RecordsScreenState(
 
     val showRenameDialog: Boolean = false,
     val showMoveToRecycleDialog: Boolean = false,
+    val showMoveToRecycleMultipleDialog: Boolean = false,
     val showSaveAsDialog: Boolean = false,
-    val selectedRecord: RecordListItem? = null,
+    val showSaveAsMultipleDialog: Boolean = false,
+    //A record for which some operation requested (rename, save as, delete)
+    val operationSelectedRecord: RecordListItem? = null,
+    val activeRecord: RecordListItem? = null,
 )
 
 data class RecordListItem(
@@ -384,7 +522,7 @@ internal sealed class RecordsScreenAction {
     data class InitRecordsScreen(val showPlayPanel: Boolean) : RecordsScreenAction()
     data class UpdateListWithSortOrder(val sortOrderId: SortDropDownMenuItemId) : RecordsScreenAction()
     data class UpdateListWithBookmarks(val bookmarksSelected: Boolean) : RecordsScreenAction()
-    data class OnItemSelect(val recordId: Long) : RecordsScreenAction()
+    data class OnItemSelect(val record: RecordListItem) : RecordsScreenAction()
     data class BookmarkRecord(val recordId: Long, val addToBookmarks: Boolean) : RecordsScreenAction()
     data class ShareRecord(val recordId: Long) : RecordsScreenAction()
     data class ShowRecordInfo(val recordId: Long) : RecordsScreenAction()
@@ -398,6 +536,15 @@ internal sealed class RecordsScreenAction {
     data object OnSaveAsDismiss : RecordsScreenAction()
     data class RenameRecord(val recordId: Long, val newName: String) : RecordsScreenAction()
     data object OnRenameRecordDismiss : RecordsScreenAction()
+    data class MultiSelectAddItem(val selectedRecord: RecordListItem) : RecordsScreenAction()
+    data object MultiSelectCancel : RecordsScreenAction()
+    data class MultiSelectShare(val selectedRecords: List<RecordListItem>) : RecordsScreenAction()
+    data object MultiSelectSaveAs : RecordsScreenAction()
+    data object MultiSelectSaveAsRequest : RecordsScreenAction()
+    data object MultiSelectSaveAsDismiss : RecordsScreenAction()
+    data object MultiSelectMoveToRecycle : RecordsScreenAction()
+    data object MultiSelectMoveToRecycleRequest : RecordsScreenAction()
+    data object MultiSelectMoveToRecycleDismiss : RecordsScreenAction()
 }
 
 internal fun Record.toRecordListItem(context: Context): RecordListItem {

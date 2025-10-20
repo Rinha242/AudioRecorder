@@ -22,6 +22,7 @@ import com.dimowner.audiorecorder.v2.data.model.SortOrder
 interface RecordsDataSource {
 
     suspend fun getRecord(id: Long): Record?
+    suspend fun getRecords(ids: List<Long>): List<Record>
 
     suspend fun getActiveRecord(): Record?
 
@@ -38,7 +39,9 @@ interface RecordsDataSource {
 
     suspend fun insertRecord(record: Record): Long
 
-    suspend fun updateRecord(record: Record)
+    suspend fun updateRecord(record: Record): Boolean
+
+    suspend fun updateRecords(records: List<Record>): Int
 
     suspend fun renameRecord(record: Record, newName: String): Boolean
 
@@ -49,6 +52,8 @@ interface RecordsDataSource {
     suspend fun deleteRecordAndFileForever(id: Long): Boolean
 
     suspend fun moveRecordToRecycle(id: Long): Boolean
+
+    suspend fun moveRecordsToRecycle(ids: List<Long>): Int
 
     suspend fun restoreRecordFromRecycle(id: Long): Boolean
 
