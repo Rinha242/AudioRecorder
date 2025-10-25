@@ -37,9 +37,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -331,14 +330,10 @@ fun <T: Parcelable> SettingSelector(
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Light
             )
-            FilledIconButton(
+            IconButton(
                 onClick = onClickInfo,
                 modifier = Modifier
                     .align(Alignment.CenterVertically),
-                colors = IconButtonDefaults.filledIconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    contentColor = MaterialTheme.colorScheme.onSurface
-                )
             ) {
                 Icon(
                     modifier = Modifier.size(20.dp),

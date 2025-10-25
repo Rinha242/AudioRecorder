@@ -36,9 +36,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -82,15 +81,11 @@ fun RecordsTopBar(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Start
     ) {
-        FilledIconButton(
+        IconButton(
             onClick = onBackPressed,
             modifier = Modifier
                 .padding(8.dp)
                 .align(Alignment.CenterVertically),
-            colors = IconButtonDefaults.filledIconButtonColors(
-                containerColor = MaterialTheme.colorScheme.surface,
-                contentColor = MaterialTheme.colorScheme.onSurface
-            )
         ) {
             Icon(
                 imageVector = Icons.Default.ArrowBack,
@@ -136,14 +131,10 @@ fun RecordsTopBar(
                 },
                 expanded = expanded
             )
-            FilledIconButton(
+            IconButton(
                 onClick = {
                     expanded.value = true
                 },
-                colors = IconButtonDefaults.filledIconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    contentColor = MaterialTheme.colorScheme.onSurface
-                )
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_sort),
@@ -154,14 +145,10 @@ fun RecordsTopBar(
                 )
             }
         }
-        FilledIconButton(
+        IconButton(
             onClick = {
                 onBookmarksClick(!bookmarksSelected)
             },
-            colors = IconButtonDefaults.filledIconButtonColors(
-                containerColor = MaterialTheme.colorScheme.surface,
-                contentColor = MaterialTheme.colorScheme.onSurface
-            )
         ) {
             Icon(
                 painter = if (bookmarksSelected) {
@@ -218,22 +205,22 @@ fun RecordListItemView(
         ) {
             Text(
                 modifier = Modifier
-                    .padding(16.dp, 12.dp, 12.dp, 2.dp)
+                    .padding(16.dp, 10.dp, 12.dp, 2.dp)
                     .fillMaxWidth()
                     .wrapContentHeight(),
                 text = name,
                 color = MaterialTheme.colorScheme.onSurface,
-                fontSize = 20.sp,
+                fontSize = 18.sp,
                 fontWeight = FontWeight.Medium
             )
             Text(
                 modifier = Modifier
-                    .padding(16.dp, 2.dp, 12.dp, 12.dp)
+                    .padding(16.dp, 2.dp, 12.dp, 10.dp)
                     .fillMaxWidth()
                     .wrapContentHeight(),
                 text = details,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontSize = 16.sp,
+                fontSize = 14.sp,
                 fontFamily = FontFamily(
                     Font(
                         DeviceFontFamilyName("sans-serif"),
@@ -248,15 +235,11 @@ fun RecordListItemView(
                 .padding(0.dp, 4.dp),
             horizontalAlignment = Alignment.End
         ) {
-            FilledIconButton(
+            IconButton(
                 onClick = { onClickBookmark(!isBookmarked) },
                 modifier = Modifier
                     .width(36.dp)
-                    .height(32.dp),
-                colors = IconButtonDefaults.filledIconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    contentColor = MaterialTheme.colorScheme.onSurface
-                )
+                    .height(32.dp)
             ) {
                 Icon(
                     painter = if (isBookmarked) {
@@ -278,7 +261,7 @@ fun RecordListItemView(
                     .wrapContentHeight(),
                 text = duration,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontSize = 16.sp,
+                fontSize = 14.sp,
                 fontFamily = FontFamily(
                     Font(
                         DeviceFontFamilyName("sans-serif"),
@@ -299,17 +282,11 @@ fun RecordListItemView(
                 },
                 expanded = expanded
             )
-            FilledIconButton(
-                onClick = {
-                    expanded.value = !expanded.value
-                },
+            IconButton(
+                onClick = { expanded.value = !expanded.value },
                 modifier = Modifier
-                    .width(32.dp)
-                    .height(60.dp),
-                colors = IconButtonDefaults.filledIconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    contentColor = MaterialTheme.colorScheme.onSurface
-                )
+                    .width(36.dp)
+                    .height(60.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.MoreVert,
@@ -346,15 +323,11 @@ fun MultiSelectMenu(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Start
     ) {
-        FilledIconButton(
+        IconButton(
             onClick = onCancelClick,
             modifier = Modifier
                 .padding(8.dp)
                 .align(Alignment.CenterVertically),
-            colors = IconButtonDefaults.filledIconButtonColors(
-                containerColor = MaterialTheme.colorScheme.surface,
-                contentColor = MaterialTheme.colorScheme.onSurface
-            )
         ) {
             Icon(
                 imageVector = Icons.Default.Close,
@@ -377,12 +350,8 @@ fun MultiSelectMenu(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        FilledIconButton(
+        IconButton(
             onClick = onShareClick,
-            colors = IconButtonDefaults.filledIconButtonColors(
-                containerColor = MaterialTheme.colorScheme.surface,
-                contentColor = MaterialTheme.colorScheme.onSurface
-            )
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_share),
@@ -392,12 +361,8 @@ fun MultiSelectMenu(
                     .padding(6.dp)
             )
         }
-        FilledIconButton(
+        IconButton(
             onClick = onDownloadClick,
-            colors = IconButtonDefaults.filledIconButtonColors(
-                containerColor = MaterialTheme.colorScheme.surface,
-                contentColor = MaterialTheme.colorScheme.onSurface
-            )
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_save_alt),
@@ -407,12 +372,8 @@ fun MultiSelectMenu(
                     .padding(6.dp)
             )
         }
-        FilledIconButton(
+        IconButton(
             onClick = onDeleteClick,
-            colors = IconButtonDefaults.filledIconButtonColors(
-                containerColor = MaterialTheme.colorScheme.surface,
-                contentColor = MaterialTheme.colorScheme.onSurface
-            )
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_delete),

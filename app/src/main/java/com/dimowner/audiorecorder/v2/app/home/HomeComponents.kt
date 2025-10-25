@@ -33,9 +33,8 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
@@ -76,15 +75,11 @@ fun TopAppBar(
             .padding(0.dp, 4.dp, 0.dp, 0.dp)
             .background(color = MaterialTheme.colorScheme.surface),
     ) {
-        FilledIconButton(
+        IconButton(
             onClick = onImportClick,
             modifier = Modifier
                 .padding(8.dp)
                 .align(Alignment.CenterStart),
-            colors = IconButtonDefaults.filledIconButtonColors(
-                containerColor = MaterialTheme.colorScheme.surface,
-                contentColor = MaterialTheme.colorScheme.onSurface
-            )
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_import),
@@ -119,13 +114,9 @@ fun TopAppBar(
                     },
                     expanded = expanded
                 )
-                FilledIconButton(
+                IconButton(
                     onClick = { expanded.value = true },
                     modifier = Modifier.padding(8.dp),
-                    colors = IconButtonDefaults.filledIconButtonColors(
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        contentColor = MaterialTheme.colorScheme.onSurface
-                    )
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_more_vert),
@@ -158,15 +149,11 @@ fun PlayPanel(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
-        FilledIconButton(
+        IconButton(
             onClick = if (showPause) onPauseClick else onPlayClick,
             modifier = Modifier
                 .size(42.dp)
                 .align(Alignment.CenterVertically),
-            colors = IconButtonDefaults.filledIconButtonColors(
-                containerColor = MaterialTheme.colorScheme.surface,
-                contentColor = MaterialTheme.colorScheme.onSurface
-            )
         ) {
             val imageResourceId = if (showPause) {
                 R.drawable.ic_pause
@@ -180,15 +167,11 @@ fun PlayPanel(
         }
         if (showStop) {
             Spacer(modifier = Modifier.size(8.dp))
-            FilledIconButton(
+            IconButton(
                 onClick = onStopClick,
                 modifier = Modifier
                     .size(42.dp)
                     .align(Alignment.CenterVertically),
-                colors = IconButtonDefaults.filledIconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    contentColor = MaterialTheme.colorScheme.onSurface
-                )
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_stop),
@@ -285,15 +268,11 @@ fun BottomBar(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Start
     ) {
-        FilledIconButton(
+        IconButton(
             onClick = onSettingsClick,
             modifier = Modifier
                 .size(42.dp)
                 .align(Alignment.CenterVertically),
-            colors = IconButtonDefaults.filledIconButtonColors(
-                containerColor = MaterialTheme.colorScheme.surface,
-                contentColor = MaterialTheme.colorScheme.onSurface
-            )
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_settings),
@@ -302,15 +281,11 @@ fun BottomBar(
         }
         Spacer(modifier = Modifier.weight(1f))
         if (showStopDeleteButton) {
-            FilledIconButton(
+            IconButton(
                 onClick = onDeleteRecordingClick,
                 modifier = Modifier
                     .size(54.dp)
                     .align(Alignment.CenterVertically),
-                colors = IconButtonDefaults.filledIconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    contentColor = MaterialTheme.colorScheme.onSurface
-                )
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_delete_forever_36),
@@ -318,15 +293,11 @@ fun BottomBar(
                 )
             }
         }
-        FilledIconButton(
+        IconButton(
             onClick = onRecordingClick,
             modifier = Modifier
                 .size(84.dp)
                 .align(Alignment.CenterVertically),
-            colors = IconButtonDefaults.filledIconButtonColors(
-                containerColor = MaterialTheme.colorScheme.surface,
-                contentColor = MaterialTheme.colorScheme.onSurface
-            )
         ) {
             Icon(
 //                modifier = Modifier.size(90.dp),
@@ -335,15 +306,11 @@ fun BottomBar(
             )
         }
         if (showStopDeleteButton) {
-            FilledIconButton(
+            IconButton(
                 onClick = onStopRecordingClick,
                 modifier = Modifier
                     .size(54.dp)
                     .align(Alignment.CenterVertically),
-                colors = IconButtonDefaults.filledIconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    contentColor = MaterialTheme.colorScheme.onSurface
-                )
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_stop),
@@ -352,15 +319,11 @@ fun BottomBar(
             }
         }
         Spacer(modifier = Modifier.weight(1f))
-        FilledIconButton(
+        IconButton(
             onClick = onRecordsListClick,
             modifier = Modifier
                 .size(42.dp)
                 .align(Alignment.CenterVertically),
-            colors = IconButtonDefaults.filledIconButtonColors(
-                containerColor = MaterialTheme.colorScheme.surface,
-                contentColor = MaterialTheme.colorScheme.onSurface
-            )
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_list),

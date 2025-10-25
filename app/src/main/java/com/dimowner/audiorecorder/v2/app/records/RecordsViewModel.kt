@@ -97,8 +97,9 @@ internal class RecordsViewModel @Inject constructor(
 
     private suspend fun initState(showPlayPanel: Boolean) {
         val context: Context = getApplication<Application>().applicationContext
+        val sortOrder = state.value.sortOrder
         val records = recordsDataSource.getRecords(
-            sortOrder = state.value.sortOrder,
+            sortOrder = sortOrder,
             page = 1,
             pageSize = 100,
             isBookmarked = false,
@@ -106,8 +107,10 @@ internal class RecordsViewModel @Inject constructor(
         val deletedRecordsCount = recordsDataSource.getMovedToRecycleRecordsCount()
         withContext(mainDispatcher) {
             _state.value = RecordsScreenState(
-                sortOrder = state.value.sortOrder,
-                records = records.map { it.toRecordListItem(context) },
+                sortOrder = sortOrder,
+                recordsMap = records.map {
+                    it.toRecordListItem(context)
+                }.groupRecordsByDate(context, sortOrder),
                 showDeletedRecordsButton = deletedRecordsCount > 0,
                 deletedRecordsCount = deletedRecordsCount,
                 showRecordPlaybackPanel = showPlayPanel,
@@ -118,17 +121,19 @@ internal class RecordsViewModel @Inject constructor(
 
     fun updateListWithBookmarks(bookmarksSelected: Boolean) {
         viewModelScope.launch(ioDispatcher) {
+            val sortOrder = state.value.sortOrder
             val records = recordsDataSource.getRecords(
-                sortOrder = state.value.sortOrder,
+                sortOrder = sortOrder,
                 page = 1,
                 pageSize = 100,
                 isBookmarked = bookmarksSelected,
             )
+            val context = getApplication<Application>().applicationContext
             withContext(mainDispatcher) {
                 _state.value = _state.value.copy(
-                    records = records.map {
-                        it.toRecordListItem(getApplication<Application>().applicationContext)
-                    },
+                    recordsMap = records.map {
+                        it.toRecordListItem(context)
+                    }.groupRecordsByDate(context, sortOrder),
                     bookmarksSelected = bookmarksSelected
                 )
             }
@@ -143,15 +148,9 @@ internal class RecordsViewModel @Inject constructor(
             val updated = recordsDataSource.getRecord(recordId)
             if (updated != null) {
                 withContext(mainDispatcher) {
-                    _state.value = _state.value.copy(
-                        records = _state.value.records.map {
-                            if (it.recordId == updated.id) {
-                                it.copy(isBookmarked = updated.isBookmarked)
-                            } else {
-                                it
-                            }
-                        },
-                    )
+                    _state.value = _state.value.updateRecordInMap(recordId) { oldRecord ->
+                        oldRecord.copy(isBookmarked = addToBookmarks)
+                    }
                 }
             }
         }
@@ -175,11 +174,12 @@ internal class RecordsViewModel @Inject constructor(
                 pageSize = 100,
                 isBookmarked = _state.value.bookmarksSelected,
             )
+            val context = getApplication<Application>().applicationContext
             withContext(mainDispatcher) {
                 _state.value = _state.value.copy(
-                    records = records.map {
-                        it.toRecordListItem(getApplication<Application>().applicationContext)
-                    },
+                    recordsMap = records.map {
+                        it.toRecordListItem(context)
+                    }.groupRecordsByDate(context, sortOrder),
                     sortOrder = sortOrder
                 )
             }
@@ -233,13 +233,13 @@ internal class RecordsViewModel @Inject constructor(
                     _state.value = _state.value.copy(
                         showRenameDialog = false,
                         operationSelectedRecord = null,
-                        records = _state.value.records.map {
-                            if (it.recordId == record.id) {
-                                it.copy(name = newName)
+                        recordsMap = _state.value.recordsMap.mapRecordInMap(recordId) { oldRecord ->
+                            if (recordId == record.id) {
+                                oldRecord.copy(name = newName)
                             } else {
-                                it
+                                oldRecord
                             }
-                        },
+                        }
                     )
                 } else {
                     _state.value = _state.value.copy(
@@ -320,7 +320,7 @@ internal class RecordsViewModel @Inject constructor(
                 //TODO: Notify active record deleted. Show Toast
                 withContext(mainDispatcher) {
                     _state.value = _state.value.copy(
-                        records = _state.value.records.filter { it.recordId != recordId },
+                        recordsMap = _state.value.recordsMap.removeRecordFromMap(recordId),
                         showMoveToRecycleDialog = false,
                         showDeletedRecordsButton = true,
                         operationSelectedRecord = null,
@@ -457,8 +457,9 @@ internal class RecordsViewModel @Inject constructor(
             val deletedCount = recordsDataSource.moveRecordsToRecycle(state.value.selectedRecords.map { it.recordId })
             if (deletedCount > 0) {
                 val context: Context = getApplication<Application>().applicationContext
+                val sortOrder = state.value.sortOrder
                 val records = recordsDataSource.getRecords(
-                    sortOrder = state.value.sortOrder,
+                    sortOrder = sortOrder,
                     page = 1,
                     pageSize = 100,
                     isBookmarked = state.value.bookmarksSelected,
@@ -467,7 +468,9 @@ internal class RecordsViewModel @Inject constructor(
                 withContext(mainDispatcher) {
                     multiSelectCancel()
                     _state.value = _state.value.copy(
-                        records = records.map { it.toRecordListItem(context) },
+                        recordsMap = records.map {
+                            it.toRecordListItem(context)
+                        }.groupRecordsByDate(context, sortOrder),
                         showDeletedRecordsButton = deletedRecordsCount > 0,
                         deletedRecordsCount = deletedRecordsCount,
                         showMoveToRecycleMultipleDialog = false,
@@ -487,7 +490,7 @@ internal class RecordsViewModel @Inject constructor(
 }
 
 data class RecordsScreenState(
-    val records: List<RecordListItem> = emptyList(),
+    val recordsMap: Map<String, List<RecordListItem>> = emptyMap(),
     val selectedRecords: List<RecordListItem> = emptyList(),
     val sortOrder: SortOrder = SortOrder.DateDesc,
     val bookmarksSelected: Boolean = false,
@@ -511,6 +514,7 @@ data class RecordListItem(
     val name: String,
     val details: String,
     val duration: String,
+    val added: Long,
     val isBookmarked: Boolean
 )
 
@@ -553,6 +557,7 @@ internal fun Record.toRecordListItem(context: Context): RecordListItem {
         name = this.name,
         details = this.toInfoCombinedText(context),
         duration =  TimeUtils.formatTimeIntervalHourMinSec2(this.durationMills),
+        added = this.added,
         isBookmarked = this.isBookmarked
     )
 }

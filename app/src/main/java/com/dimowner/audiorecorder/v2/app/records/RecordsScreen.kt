@@ -47,7 +47,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import com.dimowner.audiorecorder.R
@@ -202,7 +204,7 @@ internal fun RecordsScreen(
             ) {
                 if (uiState.isShowProgress) {
                     //Show nothing because of progress takes very short period of time
-                } else if (uiState.records.isEmpty()) {
+                } else if (uiState.recordsMap.isEmpty()) {
                     Column(
                         modifier = Modifier
                             .wrapContentSize()
@@ -271,76 +273,97 @@ internal fun RecordsScreen(
                             .fillMaxWidth()
                             .weight(1f),
                     ) {
-                        items(uiState.records) { record ->
-                            RecordListItemView(
-                                name = record.name,
-                                details = record.details,
-                                duration = record.duration,
-                                isBookmarked = record.isBookmarked,
-                                isSelected = record.recordId == uiState.activeRecord?.recordId
-                                        || uiState.selectedRecords.contains(record),
-                                onClickItem = {
-                                    if (uiState.selectedRecords.isEmpty()) {
-                                        //Reset Play panel position
-//                                    coroutineScope.launch { animatableY.snapTo(startY) }
-                                        onAction(RecordsScreenAction.OnItemSelect(record))
-                                        onHomeAction(HomeScreenAction.InitHomeScreen)
-                                        onHomeAction(HomeScreenAction.OnPlayClick)
-                                    } else {
-                                        onAction(RecordsScreenAction.MultiSelectAddItem(record))
-                                    }
-                                },
-                                onLongClickItem = {
-                                    onAction(RecordsScreenAction.MultiSelectAddItem(record))
-                                },
-                                onClickBookmark = { isBookmarked ->
-                                    onAction(
-                                        RecordsScreenAction.BookmarkRecord(
-                                            record.recordId,
-                                            isBookmarked
+                        uiState.recordsMap.forEach { (date, recordsOnDate) ->
+                            //Sticky date header
+                            stickyHeader {
+                                if (date.isEmpty()) {
+                                    Box(modifier = Modifier) {}
+                                } else {
+                                    Surface(
+                                        modifier = Modifier.fillParentMaxWidth(),
+                                    ) {
+                                        Text(
+                                            text = date,
+                                            style = MaterialTheme.typography.titleMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.padding(
+                                                16.dp, 10.dp, 16.dp, 2.dp
+                                            ),
+                                            textAlign = TextAlign.Center
                                         )
-                                    )
-                                },
-                                onClickMenu = {
-                                    when (it) {
-                                        RecordDropDownMenuItemId.SHARE -> {
-                                            onAction(RecordsScreenAction.ShareRecord(record.recordId))
-                                        }
-
-                                        RecordDropDownMenuItemId.INFORMATION -> {
-                                            onAction(RecordsScreenAction.ShowRecordInfo(record.recordId))
-                                        }
-
-                                        RecordDropDownMenuItemId.RENAME -> {
-                                            onAction(
-                                                RecordsScreenAction.OnRenameRecordRequest(
-                                                    record
-                                                )
-                                            )
-                                        }
-
-                                        RecordDropDownMenuItemId.OPEN_WITH -> {
-                                            onAction(
-                                                RecordsScreenAction.OpenRecordWithAnotherApp(
-                                                    record.recordId
-                                                )
-                                            )
-                                        }
-
-                                        RecordDropDownMenuItemId.SAVE_AS -> {
-                                            onAction(RecordsScreenAction.OnSaveAsRequest(record))
-                                        }
-
-                                        RecordDropDownMenuItemId.DELETE -> {
-                                            onAction(
-                                                RecordsScreenAction.OnMoveToRecycleRecordRequest(
-                                                    record
-                                                )
-                                            )
-                                        }
                                     }
-                                },
-                            )
+                                }
+                            }
+                            //The list of items for that specific date
+                            items(recordsOnDate) { record ->
+                                RecordListItemView(
+                                    name = record.name,
+                                    details = record.details,
+                                    duration = record.duration,
+                                    isBookmarked = record.isBookmarked,
+                                    isSelected = record.recordId == uiState.activeRecord?.recordId
+                                            || uiState.selectedRecords.contains(record),
+                                    onClickItem = {
+                                        if (uiState.selectedRecords.isEmpty()) {
+                                            onAction(RecordsScreenAction.OnItemSelect(record))
+                                            onHomeAction(HomeScreenAction.InitHomeScreen)
+                                            onHomeAction(HomeScreenAction.OnPlayClick)
+                                        } else {
+                                            onAction(RecordsScreenAction.MultiSelectAddItem(record))
+                                        }
+                                    },
+                                    onLongClickItem = {
+                                        onAction(RecordsScreenAction.MultiSelectAddItem(record))
+                                    },
+                                    onClickBookmark = { isBookmarked ->
+                                        onAction(
+                                            RecordsScreenAction.BookmarkRecord(
+                                                record.recordId,
+                                                isBookmarked
+                                            )
+                                        )
+                                    },
+                                    onClickMenu = {
+                                        when (it) {
+                                            RecordDropDownMenuItemId.SHARE -> {
+                                                onAction(RecordsScreenAction.ShareRecord(record.recordId))
+                                            }
+
+                                            RecordDropDownMenuItemId.INFORMATION -> {
+                                                onAction(RecordsScreenAction.ShowRecordInfo(record.recordId))
+                                            }
+
+                                            RecordDropDownMenuItemId.RENAME -> {
+                                                onAction(
+                                                    RecordsScreenAction.OnRenameRecordRequest(
+                                                        record
+                                                    )
+                                                )
+                                            }
+
+                                            RecordDropDownMenuItemId.OPEN_WITH -> {
+                                                onAction(
+                                                    RecordsScreenAction.OpenRecordWithAnotherApp(
+                                                        record.recordId
+                                                    )
+                                                )
+                                            }
+
+                                            RecordDropDownMenuItemId.SAVE_AS -> {
+                                                onAction(RecordsScreenAction.OnSaveAsRequest(record))
+                                            }
+
+                                            RecordDropDownMenuItemId.DELETE -> {
+                                                onAction(
+                                                    RecordsScreenAction.OnMoveToRecycleRecordRequest(
+                                                        record
+                                                    )
+                                                )
+                                            }
+                                        }
+                                    },
+                                )
+                            }
                         }
                     }
                     if (uiState.showMoveToRecycleDialog) {
@@ -470,21 +493,25 @@ fun RecordsScreenPreview() {
     val durationMills = 437232L
     RecordsScreen({}, {}, {},
         RecordsScreenState(
-            records = listOf(
-                RecordListItem(
-                    recordId = 1,
-                    name = "Test record 1",
-                    details = "1.5 MB, mp4, 192 kbps, 48 kHz",
-                    duration = "3:15",
-                    isBookmarked = true
-                ),
-                RecordListItem(
-                    recordId = 2,
-                    name = "Test record 2",
-                    details = "4.5 MB, mp3, 128 kbps, 32 kHz",
-                    duration = "8:15",
-                    isBookmarked = false
-                )
+            recordsMap = mapOf(
+                Pair("Today", listOf(
+                    RecordListItem(
+                        recordId = 1,
+                        name = "Test record 1",
+                        details = "1.5 MB, mp4, 192 kbps, 48 kHz",
+                        duration = "3:15",
+                        added = 100000000,
+                        isBookmarked = true
+                    ),
+                    RecordListItem(
+                        recordId = 2,
+                        name = "Test record 2",
+                        details = "4.5 MB, mp3, 128 kbps, 32 kHz",
+                        duration = "8:15",
+                        added = 0,
+                        isBookmarked = false
+                    )
+                ))
             ),
             showDeletedRecordsButton = true,
             showRenameDialog = false,
@@ -495,6 +522,7 @@ fun RecordsScreenPreview() {
                 name = "Test record 2",
                 details = "4.5 MB, mp3, 128 kbps, 32 kHz",
                 duration = "8:15",
+                added = 0,
                 isBookmarked = false
             )
         ),

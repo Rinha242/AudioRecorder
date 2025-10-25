@@ -18,6 +18,8 @@ package com.dimowner.audiorecorder.v2.app.records
 
 import android.content.Context
 import com.dimowner.audiorecorder.R
+import com.dimowner.audiorecorder.util.TimeUtils
+import com.dimowner.audiorecorder.util.TimeUtils.formatDateSmartLocale
 import com.dimowner.audiorecorder.v2.app.DropDownMenuItem
 import com.dimowner.audiorecorder.v2.app.records.models.RecordDropDownMenuItemId
 import com.dimowner.audiorecorder.v2.app.records.models.SortDropDownMenuItemId
@@ -93,4 +95,109 @@ fun SortDropDownMenuItemId.toSortOrder(): SortOrder {
         SortDropDownMenuItemId.DURATION -> SortOrder.DurationShortest
         SortDropDownMenuItemId.DURATION_DESC -> SortOrder.DurationLongest
     }
+}
+
+/**
+ * Updates the [recordsMap] within the current [RecordsScreenState]
+ * and returning a new [RecordsScreenState] instance.
+ *
+ * This ensures the entire state object remains immutable while reflecting the change
+ * to a single record in the nested map structure.
+ *
+ * @param recordId The unique ID of the record to find and update.
+ * @param onUpdate A function that takes the old [RecordListItem] and returns the new, updated one.
+ * @return A new [RecordsScreenState] with the updated record map.
+ */
+fun RecordsScreenState.updateRecordInMap(
+    recordId: Long,
+    onUpdate: (oldRecord: RecordListItem) -> RecordListItem
+): RecordsScreenState {
+    return this.copy(
+        recordsMap = this.recordsMap.mapRecordInMap(recordId) { record ->
+            onUpdate(record)
+        }
+    )
+}
+
+/**
+ * Immutably finds and updates a single [RecordListItem] within the nested map structure.
+ *
+ * It iterates through each list in the map and applies the [onUpdate] lambda only to the
+ * record whose [recordId] matches the provided ID, preserving all other records and groups.
+ *
+ * @param recordId The unique ID of the record to find and update.
+ * @param onUpdate A function that takes the old [RecordListItem] and returns the new, updated one.
+ * @return A new [Map] with the single record updated.
+ */
+fun Map<String, List<RecordListItem>>.mapRecordInMap(
+    recordId: Long,
+    onUpdate: (oldRecord: RecordListItem) -> RecordListItem
+): Map<String, List<RecordListItem>> {
+    return this.mapValues { (_, recordList) ->
+        recordList.map { record ->
+            if (record.recordId == recordId) {
+                onUpdate(record)
+            } else {
+                record
+            }
+        }
+    }
+}
+
+/**
+ * Immutably removes a single [RecordListItem] with the matching [recordId] from the map.
+ *
+ * This function performs two filtering steps:
+ * 1. Filters the records within each list, removing the targeted record.
+ * 2. Filters the map itself, removing any date entries (keys) whose list of records
+ * became empty after the first step.
+ *
+ * @param recordId The unique ID of the record to remove.
+ * @return A new [Map] with the record removed, and potentially, an empty list group removed.
+ */
+fun Map<String, List<RecordListItem>>.removeRecordFromMap(
+    recordId: Long,
+): Map<String, List<RecordListItem>> {
+
+    // Filtering out the record to be removed.
+    val mapWithFilteredLists = this.mapValues { (_, recordList) ->
+        recordList.filter { record ->
+            record.recordId != recordId
+        }
+    }
+
+    // Filtering out any date keys that now have an empty list.
+    return mapWithFilteredLists.filterValues { recordList ->
+        recordList.isNotEmpty()
+    }
+}
+
+/**
+ * Groups the list of [RecordListItem] objects into groups of records divided by date.
+ * This function is designed to support a UI with conditional sticky headers.
+ * @param context The [Context] required by [TimeUtils.formatDateSmartLocale] to generate
+ * localized date strings.
+ * @param sortOrder Records list sort order.
+ * @return A [Map] where keys are the formatted date strings and values are the
+ * corresponding lists of [RecordListItem] objects.
+ */
+fun List<RecordListItem>.groupRecordsByDate(
+    context: Context,
+    sortOrder: SortOrder
+): Map<String, List<RecordListItem>> {
+    return this.groupBy {
+        if (sortOrder.isSortOrderByDate()) {
+            formatDateSmartLocale(it.added, context)
+        } else {
+            ""
+        }
+    }
+}
+
+/**
+ * Checks if the current [SortOrder] is related to sorting by date
+ * @return `true` if the sort order is [SortOrder.DateAsc] or [SortOrder.DateDesc], `false` otherwise.
+ */
+fun SortOrder.isSortOrderByDate(): Boolean {
+    return this == SortOrder.DateAsc || this == SortOrder.DateDesc
 }
