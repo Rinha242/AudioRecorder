@@ -5,6 +5,21 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build Type (debug/release)'
+        required: true
+        default: 'debug'
+        type: choice
+        options:
+        - debug
+        - release
+      run_tests:
+        description: 'Run Tests'
+        required: true
+        default: true
+        type: boolean
 
 jobs:
   build:
@@ -34,16 +49,22 @@ jobs:
       run: chmod +x gradlew
       
     - name: Run tests
+      if: ${{ github.event_name != 'workflow_dispatch' || inputs.run_tests }}
       run: ./gradlew test
       
-    - name: Build Debug APK
-      run: ./gradlew assembleDebug
+    - name: Build APK
+      run: |
+        if [[ "${{ github.event.inputs.build_type }}" == "release" && "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+          ./gradlew assembleRelease
+        else
+          ./gradlew assembleDebug
+        fi
       
-    - name: Upload Debug APK
+    - name: Upload APK
       uses: actions/upload-artifact@v3
       with:
-        name: app-debug
-        path: app/build/outputs/apk/debug/app-debug.apk
+        name: ${{ github.event.inputs.build_type == 'release' && github.event_name == 'workflow_dispatch' && 'app-release' || 'app-debug' }}
+        path: app/build/outputs/apk/${{ github.event.inputs.build_type == 'release' && github.event_name == 'workflow_dispatch' && 'release' || 'debug' }}/app-${{ github.event.inputs.build_type == 'release' && github.event_name == 'workflow_dispatch' && 'release' || 'debug' }}.apk
         
     - name: Generate Test Report
       uses: asadmansr/android-test-report-action@v1.2.0
@@ -51,6 +72,7 @@ jobs:
 
   ui-test:
     runs-on: macos-latest
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.run_tests }}
     strategy:
       matrix:
         api-level: [29, 30]
