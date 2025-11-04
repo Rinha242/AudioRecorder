@@ -72,5 +72,8 @@ public interface Prefs {
 	void setSettingChannelCount(int count);
 	int getSettingChannelCount();
 
+	void setSettingAudioSource(AudioSource source);
+	AudioSource getSettingAudioSource();
+
 	void resetSettings();
 }

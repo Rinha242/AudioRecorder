@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Audio Source Settings -->
+    <string name="audio_source_title">Recording Source</string>
+    <string name="audio_source_summary">Choose the audio input source</string>
+    
+    <string-array name="audio_source_entries">
+        <item>Microphone</item>
+        <item>Internal Audio</item>
+        <item>Bluetooth Microphone</item>
+    </string-array>
+    
+    <string-array name="audio_source_values">
+        <item>mic</item>
+        <item>internal</item>
+        <item>bluetooth</item>
+    </string-array>
+</resources>

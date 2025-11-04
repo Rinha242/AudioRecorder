@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="audio_source_entries">
+        <item>@string/audio_source_mic</item>
+        <item>@string/audio_source_bluetooth</item>
+        <item>@string/audio_source_internal</item>
+    </string-array>
+
+    <string-array name="audio_source_values">
+        <item>mic</item>
+        <item>bluetooth</item>
+        <item>internal</item>
+    </string-array>
+</resources>

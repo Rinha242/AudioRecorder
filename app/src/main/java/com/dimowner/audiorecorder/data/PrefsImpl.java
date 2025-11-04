@@ -56,6 +56,7 @@ public class PrefsImpl implements Prefs {
 	private static final String PREF_KEY_SETTING_SAMPLE_RATE = "setting_sample_rate";
 	private static final String PREF_KEY_SETTING_NAMING_FORMAT = "setting_naming_format";
 	private static final String PREF_KEY_SETTING_CHANNEL_COUNT = "setting_channel_count";
+	private static final String PREF_KEY_SETTING_AUDIO_SOURCE = "setting_audio_source";
 
 	private final SharedPreferences sharedPreferences;
 
@@ -388,6 +389,18 @@ public class PrefsImpl implements Prefs {
 		SharedPreferences.Editor editor = sharedPreferences.edit();
 		editor.putInt(PREF_KEY_SETTING_CHANNEL_COUNT, count);
 		editor.apply();
+	}
+
+	@Override
+	public void setSettingAudioSource(AudioSource source) {
+		SharedPreferences.Editor editor = sharedPreferences.edit();
+		editor.putString(PREF_KEY_SETTING_AUDIO_SOURCE, source.name());
+		editor.apply();
+	}
+
+	@Override
+	public AudioSource getSettingAudioSource() {
+		return AudioSource.valueOf(sharedPreferences.getString(PREF_KEY_SETTING_AUDIO_SOURCE, AudioSource.MIC.name()));
 	}
 
 	@Override

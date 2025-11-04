@@ -27,6 +27,8 @@ public class SettingsContract {
 	interface View extends Contract.View {
 
 		void showStoreInPublicDir(boolean b);
+		
+		void showAudioSource(AudioSource source);
 
 		void showDirectorySetting(boolean b);
 
@@ -95,6 +97,8 @@ public class SettingsContract {
 		void setSettingNamingFormat(String namingKey);
 
 		void setSettingRecordingFormat(String formatKey);
+
+		void setSettingAudioSource(AudioSource source);
 
 		void deleteAllRecords();
 

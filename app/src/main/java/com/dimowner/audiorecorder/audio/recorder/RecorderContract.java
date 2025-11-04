@@ -28,11 +28,13 @@ public interface RecorderContract {
 		void onResumeRecord();
 		void onRecordProgress(long mills, int amp);
 		void onStopRecord(File output);
+		void onAudioSourceChanged(AudioSource source);
 		void onError(AppException throwable);
 	}
 
 	interface Recorder {
 		void setRecorderCallback(RecorderCallback callback);
+		void setAudioSource(AudioSource source);
 		void startRecording(String outputFile, int channelCount, int sampleRate, int bitrate);
 		void resumeRecording();
 		void pauseRecording();

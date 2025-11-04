@@ -78,6 +78,7 @@ public class SettingsActivity extends Activity implements SettingsContract.View,
 	private Spinner nameFormatSelector;
 
 	private SettingView formatSetting;
+	private SettingView audioSourceSetting;
 	private SettingView sampleRateSetting;
 	private SettingView bitrateSetting;
 	private SettingView channelsSetting;
@@ -169,6 +170,14 @@ public class SettingsActivity extends Activity implements SettingsContract.View,
 		formatSetting.setData(formats, formatsKeys);
 		formatSetting.setOnChipCheckListener((key, name, checked) -> presenter.setSettingRecordingFormat(key));
 		formatSetting.setTitle(R.string.recording_format);
+
+		audioSourceSetting = findViewById(R.id.setting_audio_source);
+		String[] audioSources = getResources().getStringArray(R.array.audio_source_entries);
+		String[] audioSourceKeys = getResources().getStringArray(R.array.audio_source_values);
+		audioSourceSetting.setData(audioSources, audioSourceKeys);
+		audioSourceSetting.setTitle(R.string.audio_source);
+		audioSourceSetting.setOnChipCheckListener((key, name, checked) -> 
+			presenter.setSettingAudioSource(AudioSource.fromString(key)));
 		formatSetting.setOnInfoClickListener(v -> AndroidUtils.showInfoDialog(SettingsActivity.this, R.string.info_format));
 
 		sampleRateSetting = findViewById(R.id.setting_frequency);
@@ -404,6 +413,11 @@ public class SettingsActivity extends Activity implements SettingsContract.View,
 		swPublicDir.setOnCheckedChangeListener(null);
 		swPublicDir.setChecked(b);
 		swPublicDir.setOnCheckedChangeListener(publicDirListener);
+	}
+
+	@Override
+	public void showAudioSource(AudioSource source) {
+		audioSourceSetting.setSelected(source.name().toLowerCase());
 	}
 
 	@Override

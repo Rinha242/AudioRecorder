@@ -37,6 +37,8 @@ public class AudioRecorder implements RecorderContract.Recorder {
 	private File recordFile = null;
 	private long updateTime = 0;
 	private long durationMills = 0;
+	private AudioSource audioSource = AudioSource.MIC;
+	private BluetoothManager bluetoothManager;
 
 	private final AtomicBoolean isRecording = new AtomicBoolean(false);
 	private final AtomicBoolean isPaused = new AtomicBoolean(false);
@@ -203,5 +205,37 @@ public class AudioRecorder implements RecorderContract.Recorder {
 	@Override
 	public boolean isPaused() {
 		return isPaused.get();
+	}
+
+	@Override
+	public void setAudioSource(AudioSource source) {
+		this.audioSource = source;
+		if (callback != null) {
+			callback.onAudioSourceChanged(source);
+		}
+	}
+
+	private void setupAudioSource() {
+		switch (audioSource) {
+			case BLUETOOTH:
+				if (bluetoothManager != null && bluetoothManager.isBluetoothHeadsetConnected()) {
+					bluetoothManager.startBluetoothSco();
+					recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+				} else {
+					recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+				}
+				break;
+			case INTERNAL:
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+					recorder.setAudioSource(MediaRecorder.AudioSource.REMOTE_SUBMIX);
+				} else {
+					recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+				}
+				break;
+			case MIC:
+			default:
+				recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+				break;
+		}
 	}
 }

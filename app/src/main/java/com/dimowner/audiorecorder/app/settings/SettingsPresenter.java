@@ -164,6 +164,14 @@ public class SettingsPresenter implements SettingsContract.UserActionsListener {
 	}
 
 	@Override
+	public void setSettingAudioSource(AudioSource source) {
+		prefs.setSettingAudioSource(source);
+		if (view != null) {
+			view.showAudioSource(source);
+		}
+	}
+
+	@Override
 	public void setSettingThemeColor(String colorKey) {
 		prefs.setSettingThemeColor(colorKey);
 	}
